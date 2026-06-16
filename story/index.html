@@ -6749,7 +6749,7 @@
       state.locked = false;
       setInstruction("");
       setupBots("layout-clear");
-      els.playBg.src = ASSETS + "LetsPlayBG.png";
+      els.playBg.src = ASSETS + "LetsPlayBg.png";
       els.playButtonImg.src = ASSETS + "PlayButton.png";
       els.playButtonImg.alt = "Play";
       els.playButton.setAttribute("aria-label", "Play");
@@ -6799,7 +6799,7 @@
         }, 760);
       }
 
-      // Wait for the new LetsPlayBG.png to finish decoding before unhiding the
+      // Wait for the new LetsPlayBg.png to finish decoding before unhiding the
       // stage; otherwise the <img> keeps painting the previously-decoded
       // GameStartScreen.png for a frame, flashing the start screen.
       if (typeof els.playBg.decode === "function") {
@@ -8146,7 +8146,7 @@
     (function preloadCriticalAssets() {
       [
         "Mainbg.png", "BgForTutorial.png",
-        "GameStartScreen.png", "LetsPlayBG.png",
+        "GameStartScreen.png", "LetsPlayBg.png",
         "instructionPannel.png", "Ira.png",
         "LaserMachineWithoutLines.png", "LaserMachine.svg", "Beam.svg",
         "Laser.png", "laserlight.png",
