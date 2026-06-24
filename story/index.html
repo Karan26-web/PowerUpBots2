@@ -2011,10 +2011,10 @@
       position: absolute;
       right: 56px;
       bottom: 68px;
-      width: 290px;
-      height: 76px;
+      width: 200px;
+      height: auto;
       border: none;
-      border-radius: 38px;
+      padding: 0;
       opacity: 0;
       transform: scale(0.85) translateY(16px);
       transition:
@@ -2027,8 +2027,8 @@
       z-index: 6;
       overflow: visible;
       transform-origin: 50% 50%;
-      background: linear-gradient(175deg, #ffe55a 0%, #f5a623 38%, #e07400 100%);
-      box-shadow: inset 0 3px 0 rgba(255,255,255,0.38), 0 5px 0 rgba(150,60,0,0.45), 0 8px 18px rgba(220,100,0,0.35);
+      background: none;
+      box-shadow: none;
       filter: drop-shadow(0 0 16px rgba(255, 214, 54, .78)) drop-shadow(0 10px 20px rgba(255, 149, 0, .35));
       display: flex;
       align-items: center;
@@ -2059,15 +2059,7 @@
     }
 
     #playButton::after {
-      content: "";
-      position: absolute;
-      inset: 20% 10% 18% 8%;
-      border-radius: 50%;
-      background: radial-gradient(ellipse, rgba(255, 255, 255, .52) 0 10%, transparent 58%);
-      opacity: .52;
-      transform: scale(.9);
-      pointer-events: none;
-      z-index: 2;
+      display: none;
     }
 
     #playButton img {
@@ -2080,8 +2072,9 @@
     }
 
     #playStage.start-mode #playButton {
-      left: 495px;
-      right: auto;
+      left: 0;
+      right: 0;
+      margin-inline: auto;
       top: 480px;
       bottom: auto;
     }
@@ -2091,9 +2084,8 @@
       right: auto;
       top: 312px;
       bottom: auto;
-      width: 264px;
-      height: 96px;
-      border-radius: 48px;
+      width: 180px;
+      height: auto;
       filter: drop-shadow(0 0 18px rgba(255, 167, 38, .78)) drop-shadow(0 0 18px rgba(77, 202, 255, .42));
       transform-origin: center center;
     }
@@ -2287,6 +2279,62 @@
       }
     }
 
+    /* ── Lab-gate scene transition ─────────────────────────────────────────
+       Full-screen overlay of two doors. Each half is the SAME LabGate.webp,
+       scaled to cover the 1280×720 stage and pinned to its own edge, so the
+       left half shows the gate's left side and the right half its right side
+       — the glowing center seam meets exactly at x=640. Doors rest off-screen
+       (open); .closed slides them together to cover the stage. */
+    #gateTransition {
+      position: absolute;
+      inset: 0;
+      z-index: 120;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    #gateTransition.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .gate-half {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 50.2%;            /* slight overlap kills a sub-pixel seam gap */
+      background-image: url(assets/LabGate.webp);
+      background-repeat: no-repeat;
+      background-size: 1280px 803px;   /* gate aspect preserved, covers width */
+      background-position-y: center;
+      background-color: #acc4ff;       /* fills the art's transparent corners */
+      will-change: transform;
+      transition: transform 1.15s cubic-bezier(.65, 0, .35, 1);
+    }
+
+    #gateLeft {
+      left: 0;
+      background-position-x: left;
+      box-shadow: inset -18px 0 38px rgba(40, 80, 190, .35);
+    }
+
+    #gateRight {
+      right: 0;
+      background-position-x: right;
+      box-shadow: inset 18px 0 38px rgba(40, 80, 190, .35);
+    }
+
+    /* Resting (open) position — doors parked just off either edge. */
+    #gateLeft { transform: translateX(-101%); }
+    #gateRight { transform: translateX(101%); }
+
+    /* Closed — doors meet at center, covering the stage. */
+    #gateTransition.closed #gateLeft,
+    #gateTransition.closed #gateRight { transform: translateX(0); }
+
+    /* Suppress the slide while snapping shut, so only the opening animates. */
+    #gateTransition.no-anim .gate-half { transition: none; }
+
     @keyframes playStageExit {
       0% {
         opacity: 1;
@@ -2463,6 +2511,47 @@
       pointer-events: none;
       z-index: 7;
       display: none;
+    }
+
+    /* Focus scrim — dims the background to push the objects forward. Sits
+       above #sceneBg (z0) and below #scene/#bots (z5) and #machineStage (z50),
+       so only the empty background is darkened. Off by default, eased in only
+       for the laser-intro scene. */
+    #focusScrim {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      background: rgba(0, 0, 0, 0.20);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .35s ease;
+    }
+
+    #game.laser-intro #focusScrim {
+      opacity: 1;
+    }
+
+    /* Highlight the laser machine during the "Use the laser to cut the block."
+       intro scene only (#game carries .laser-intro just for that step). A warm
+       alpha-yellow glow reads against the cool blue scene and draws the eye to
+       the nozzle. Animate filter only — the nozzle's transform is the live
+       rotate() set from JS, so touching transform here would fight it. */
+    #game.laser-intro #laserImg {
+      animation: laserHeadGlow 1.25s ease-in-out infinite;
+    }
+
+    @keyframes laserHeadGlow {
+      0%, 100% {
+        filter:
+          drop-shadow(0 0 5px rgba(255, 224, 110, .55))
+          drop-shadow(0 0 13px rgba(255, 196, 48, .32));
+      }
+      50% {
+        filter:
+          drop-shadow(0 0 13px rgba(255, 234, 140, .95))
+          drop-shadow(0 0 28px rgba(255, 188, 40, .62))
+          drop-shadow(0 0 40px rgba(255, 170, 30, .3));
+      }
     }
 
     /* ── Beam.svg — only shown on CUT ── */
@@ -3521,6 +3610,11 @@
   <main id="game" aria-label="PowerUp Bots halves game">
     <img id="sceneBg" class="bg" src="assets/Mainbg.png" alt="">
 
+    <!-- Focus scrim: a soft dark wash that sits just above the background and
+         below every interactive object, so the laser apparatus, bots and
+         instruction read more strongly. Only shown on the laser-intro scene. -->
+    <div id="focusScrim" aria-hidden="true"></div>
+
     <section id="instruction" class="hidden" aria-live="polite">
       <img class="insn-panel" src="assets/instructionPannel.png" alt="">
       <img class="insn-face" src="assets/instructionPannel.png" alt="">
@@ -3553,7 +3647,7 @@
         <div id="iraGlowRing" aria-hidden="true"></div>
         <img id="iraChar" src="assets/Ira.png" alt="">
         <button id="playButton" type="button" aria-label="Let's go">
-          <span id="playButtonImg">PLAY</span>
+          <img id="playButtonImg" src="assets/PlayButton.png" alt="Play">
         </button>
       </section>
 
@@ -3639,6 +3733,15 @@
         Next
       </button>
     </section>
+
+    <!-- Lab-gate scene transition: two doors rebuilt from LabGate.webp that
+         slide shut over the screen, hold while the scene swaps underneath,
+         then slide apart to reveal it. Each half paints its own side of the
+         single source image so the glowing center seam lines up exactly. -->
+    <div id="gateTransition" class="hidden" aria-hidden="true">
+      <div class="gate-half" id="gateLeft"></div>
+      <div class="gate-half" id="gateRight"></div>
+    </div>
   </main>
 
   <script>
@@ -4098,6 +4201,19 @@
       } catch (e) {}
     }
 
+    var _gateOpenAudio = null;
+    function sndGateOpen() {
+      try {
+        if (!_gateOpenAudio) {
+          _gateOpenAudio = new Audio("audios/gateOpen.ogg");
+          _gateOpenAudio.preload = "auto";
+        }
+        _gateOpenAudio.currentTime = 0;
+        var p = _gateOpenAudio.play();
+        if (p && typeof p.catch === "function") { p.catch(function () {}); }
+      } catch (e) {}
+    }
+
     function playPlugMp3() {
       if (!_plugConnectAudio) { return null; }
       try {
@@ -4528,6 +4644,7 @@
       iraGlowRing: document.getElementById("iraGlowRing"),
       playButton: document.getElementById("playButton"),
       playButtonImg: document.getElementById("playButtonImg"),
+      gateTransition: document.getElementById("gateTransition"),
       machineStage: document.getElementById("machineStage"),
       machineImg: document.getElementById("machineImg"),
       machineSvgLayer: document.getElementById("machineSvgLayer"),
@@ -6432,6 +6549,36 @@
       later(function () { setSocketFocus(true); }, 500);
     }
 
+    /* Lab-gate transition — OPEN ONLY. The doors snap shut instantly (no
+       visible closing) so the swap is hidden, `onCovered` swaps the scene
+       behind them, then they slide apart with the gateOpen sound to reveal it.
+         instant cover (+ swap) → open 0.58s → settle. */
+    var _gateBusy = false;
+    function runGateTransition(onCovered, onDone) {
+      var gate = els.gateTransition;
+      if (!gate) { if (onCovered) onCovered(); if (onDone) onDone(); return; }
+      _gateBusy = true;
+
+      // Snap the doors shut with animation suppressed — the player never sees
+      // them close, only the already-closed gate that then opens.
+      gate.classList.add("no-anim", "closed");
+      show(gate);
+      void gate.offsetWidth;                 // flush the closed state to the screen
+      try { if (onCovered) onCovered(); } catch (e) {}   // swap scene behind the gate
+
+      requestAnimationFrame(function () {
+        gate.classList.remove("no-anim");    // re-enable the slide transition
+        void gate.offsetWidth;
+        sndGateOpen();
+        gate.classList.remove("closed");     // doors slide apart, revealing new scene
+        later(function () {
+          hide(gate);
+          _gateBusy = false;
+          if (onDone) onDone();
+        }, 1200);
+      });
+    }
+
     function renderStep() {
       clearTimers();
       resetScene();
@@ -6491,9 +6638,9 @@
         setInstruction("");
         setupBots("layout-clear");
         els.playBg.src = ASSETS + "GameStartScreen.png";
-        els.playButtonImg.src = ASSETS + "LetsGoButton.png";
-        els.playButtonImg.alt = "Let's Go";
-        els.playButton.setAttribute("aria-label", "Let's go");
+        els.playButtonImg.src = ASSETS + "PlayButton.png";
+        els.playButtonImg.alt = "Play";
+        els.playButton.setAttribute("aria-label", "Play");
         els.playStage.classList.add("start-mode");
         els.iraChar.classList.remove("play-idle");
         els.iraChar.style.transition = "";
@@ -8098,7 +8245,13 @@
       sndTap();
       els.playButton.classList.add("play-clicked");
       els.playStage.classList.add("play-exit");
-      later(nextStep, 190);
+      // From the title screen, dive into the lab through the gate: the doors
+      // shut over the title, the intro scene loads behind them, then they part.
+      if (els.playStage.classList.contains("start-mode")) {
+        later(function () { runGateTransition(nextStep); }, 190);
+      } else {
+        later(nextStep, 190);
+      }
     });
     els.hitLeft.addEventListener("click", function () {
       if (state.tutActive) { tutHandleLeft(); return; }
@@ -8156,7 +8309,7 @@
         "InstruictionTutorialLeft.png", "InstructionTutorialRight.png",
         "InstructionTutorialCutButton.png",
         "nextButton.png", "NextButton2.png", "TryAgainButton.png",
-        "LetsGoButton.png", "PlayButton.png"
+        "LetsGoButton.png", "PlayButton.png", "LabGate.webp"
       ].forEach(function (name) { preloadAsset(ASSETS + name); });
     })();
 
