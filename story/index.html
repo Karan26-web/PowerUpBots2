@@ -1966,11 +1966,15 @@
 
     #iraChar {
       position: absolute;
-      width: 188px;
+      width: 236px;          /* video is 360×640 → ~419px tall, matching Ira's footprint */
       height: auto;
-      left: 268px;
-      top: 180px;
-      transform: translateX(1200px);
+      left: 244px;
+      top: 200px;
+      /* scaleX(-1) mirrors Ira: the raw clips have her running to the right and
+         pointing left, so the mirror makes her run left toward the podium and
+         point right toward the Play button. translateX stays the outer transform
+         so the slide-in direction is unaffected by the mirror. */
+      transform: translateX(1200px) scaleX(-1);
       pointer-events: none;
       z-index: 5;
       filter: drop-shadow(0 18px 18px rgba(31, 71, 139, .18));
@@ -3645,7 +3649,7 @@
         <img id="playBg" src="assets/GameStartScreen.png" alt="">
         <div id="playFx" aria-hidden="true"></div>
         <div id="iraGlowRing" aria-hidden="true"></div>
-        <img id="iraChar" src="assets/Ira.png" alt="">
+        <video id="iraChar" src="assets/IraVid1.webm" muted playsinline preload="auto" aria-hidden="true"></video>
         <button id="playButton" type="button" aria-label="Let's go">
           <img id="playButtonImg" src="assets/PlayButton.png" alt="Play">
         </button>
@@ -4867,6 +4871,7 @@
       els.teachContent.innerHTML = "";
       if (els.playFx) { els.playFx.innerHTML = ""; }
       els.iraChar.classList.remove("play-idle");
+      if (typeof els.iraChar.pause === "function") { els.iraChar.pause(); }
       els.iraGlowRing.classList.remove("show");
       els.playStage.classList.remove("play-exit", "start-mode", "preplay-mode");
       els.playButton.classList.remove("play-ready", "play-clicked");
@@ -6905,18 +6910,34 @@
       els.playButton.classList.remove("play-ready", "play-clicked");
       els.playButton.style.opacity = "0";
       els.playButton.style.transform = "scale(0.85) translateY(16px)";
-      els.iraChar.classList.remove("play-idle");
-      els.iraChar.style.transition = "none";
-      els.iraChar.style.transform = "translateX(1200px)";
       els.iraGlowRing.classList.remove("show");
+      // Park the entrance clip off-screen right, ready to glide in.
+      els.iraChar.loop = false;
+      els.iraChar.style.transition = "none";
+      els.iraChar.style.transform = "translateX(1200px) scaleX(-1)";
       seedPlayMagic();
 
       function revealPlayButton() {
-        els.iraChar.style.transition = "";
-        els.iraChar.classList.add("play-idle");
         els.playButton.style.opacity = "1";
         els.playButton.style.transform = "scale(1) translateY(0)";
         els.playButton.classList.add("play-ready");
+      }
+
+      // Phase 2: Ira has arrived. Loop the talking clip, drop her shadow, then
+      // play the VOs. The Play button appears the moment "Let's play." begins.
+      var spoke = false;
+      function playIraVid2AndSpeak() {
+        if (spoke) { return; }
+        spoke = true;
+        els.iraChar.loop = true;
+        els.iraChar.src = ASSETS + "IraVid2.webm";
+        els.iraChar.play().catch(function () {});
+        els.iraGlowRing.classList.add("show");
+        var first = playInstructionAudio("You are all set.");
+        whenInstructionAudioEnds(first, function () {
+          playInstructionAudio("Let's play.");
+          revealPlayButton();
+        });
       }
 
       function startPreplaySequence() {
@@ -6925,25 +6946,27 @@
         if (FLOW[state.step] && FLOW[state.step].scene !== "preplay") { return; }
         show(els.playStage);
 
+        // Phase 1: IraVid1 — the running clip enters from the right and glides
+        // to her resting spot on the left over the length of the clip.
+        els.iraChar.loop = false;
+        els.iraChar.src = ASSETS + "IraVid1.webm";
+        els.iraChar.currentTime = 0;
+        els.iraChar.play().catch(function () {});
+
+        function onVid1End() {
+          els.iraChar.removeEventListener("ended", onVid1End);
+          playIraVid2AndSpeak();
+        }
+        els.iraChar.addEventListener("ended", onVid1End);
+        // Fallback in case 'ended' is missed (decode hiccup / tab throttle).
+        later(playIraVid2AndSpeak, 3800);
+
         requestAnimationFrame(function () {
           requestAnimationFrame(function () {
-            els.iraChar.style.transition = "transform 0.72s cubic-bezier(0.25, 1.1, 0.4, 1)";
-            els.iraChar.style.transform = "translateX(0)";
-            later(function () { els.iraGlowRing.classList.add("show"); }, 680);
+            els.iraChar.style.transition = "transform 3.4s cubic-bezier(0.22, 0.8, 0.3, 1)";
+            els.iraChar.style.transform = "translateX(0) scaleX(-1)";
           });
         });
-
-        // After Ira finishes sliding in, play "You are all set." then "Let's play.",
-        // then reveal the Play button.
-        later(function () {
-          var first = playInstructionAudio("You are all set.");
-          whenInstructionAudioEnds(first, function () {
-            var second = playInstructionAudio("Let's play.");
-            whenInstructionAudioEnds(second, function () {
-              revealPlayButton();
-            });
-          });
-        }, 760);
       }
 
       // Wait for the new LetsPlayBg.png to finish decoding before unhiding the
@@ -8311,6 +8334,17 @@
         "nextButton.png", "NextButton2.png", "TryAgainButton.png",
         "LetsGoButton.png", "PlayButton.png", "LabGate.webp"
       ].forEach(function (name) { preloadAsset(ASSETS + name); });
+    })();
+
+    /* Warm the Ira preplay clips so the entrance plays without a load hitch. */
+    (function preloadIraVideos() {
+      ["IraVid1.webm", "IraVid2.webm"].forEach(function (name) {
+        var v = document.createElement("video");
+        v.preload = "auto";
+        v.muted = true;
+        v.src = ASSETS + name;
+        try { v.load(); } catch (e) {}
+      });
     })();
 
     /* Preload every round's pod, bot and block PNGs at startup. Without
