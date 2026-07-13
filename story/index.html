@@ -853,41 +853,26 @@
       border-radius: 50%;
     }
 
-    .pod-hollow-focus {
-      position: absolute;
-      left: 50%;
-      width: 132px;
-      height: auto;
-      object-fit: contain;
-      pointer-events: none;
-      opacity: .88;
-      z-index: 5;
-      clip-path: inset(0 0 68.5% 0 round 14px);
-      filter:
-        brightness(1.08)
-        drop-shadow(0 0 8px rgba(47, 255, 255, .76))
-        drop-shadow(0 0 22px rgba(18, 218, 226, .48));
-      animation: podHollowOnlyGlow 1.15s ease-in-out infinite;
-      backface-visibility: hidden;
-      will-change: filter, opacity;
-    }
-
     .pod-hollow-focus-frame {
       position: absolute;
       left: 50%;
       width: var(--hollow-focus-w, 104px);
       height: var(--hollow-focus-h, 104px);
       border: 4px solid #2fffff;
-      border-radius: 12px;
+      /* Sharp corners; all glow is INSET so nothing paints outside the frame
+         (which sits on the hollow's inner edge — border-box keeps the border
+         inside too). */
+      border-radius: 0;
       pointer-events: none;
       opacity: .92;
       z-index: 7;
       box-sizing: border-box;
-      background: rgba(47, 255, 255, .025);
+      /* Interior tint carries the "lit hollow" look (the old clipped
+         pod-image brightening layer is gone — it never matched the hollow). */
+      background: rgba(47, 255, 255, .10);
       box-shadow:
-        0 0 0 2px rgba(218, 255, 255, .66),
-        0 0 18px 5px rgba(47, 255, 255, .78),
-        0 0 46px 16px rgba(18, 218, 226, .4),
+        inset 0 0 0 2px rgba(218, 255, 255, .66),
+        inset 0 0 18px 5px rgba(47, 255, 255, .5),
         inset 0 0 12px rgba(47, 255, 255, .38);
       animation: podHollowCyanPulse 1.08s ease-in-out infinite;
       transform-origin: center center;
@@ -954,40 +939,24 @@
       animation: semicircleFocusRimPulse .98s ease-in-out infinite;
     }
 
-    @keyframes podHollowOnlyGlow {
-      0%, 100% {
-        opacity: .72;
-        filter:
-          brightness(1.06)
-          drop-shadow(0 0 7px rgba(47, 255, 255, .62))
-          drop-shadow(0 0 17px rgba(18, 218, 226, .36));
-      }
-      50% {
-        opacity: .98;
-        filter:
-          brightness(1.15)
-          drop-shadow(0 0 14px rgba(47, 255, 255, .94))
-          drop-shadow(0 0 34px rgba(18, 218, 226, .68));
-      }
-    }
 
     @keyframes podHollowCyanPulse {
+      /* Inset-only glow and a max scale of 1, so the pulsing frame never
+         grows or shines beyond the hollow's edge. */
       0%, 100% {
         opacity: .76;
-        transform: translateX(-50%) scale(.985);
+        transform: translateX(-50%) scale(.97);
         box-shadow:
-          0 0 0 1px rgba(218, 255, 255, .46),
-          0 0 14px 4px rgba(47, 255, 255, .58),
-          0 0 38px 13px rgba(18, 218, 226, .3),
+          inset 0 0 0 1px rgba(218, 255, 255, .46),
+          inset 0 0 14px 4px rgba(47, 255, 255, .44),
           inset 0 0 10px rgba(47, 255, 255, .3);
       }
       50% {
         opacity: 1;
-        transform: translateX(-50%) scale(1.025);
+        transform: translateX(-50%) scale(1);
         box-shadow:
-          0 0 0 3px rgba(230, 255, 255, .82),
-          0 0 22px 7px rgba(47, 255, 255, .94),
-          0 0 58px 21px rgba(18, 218, 226, .52),
+          inset 0 0 0 3px rgba(230, 255, 255, .82),
+          inset 0 0 22px 7px rgba(47, 255, 255, .7),
           inset 0 0 18px rgba(47, 255, 255, .54);
       }
     }
@@ -1610,7 +1579,7 @@
       border-radius: 34px;
       /* Neon panel drawn in pure CSS (vector) so the border stays razor-sharp
          at every viewport scale and DPI. It previously used a 2542x1522
-         TeachingScreen.png stretched to 1100x560, then upscaled again by the
+         TeachingScreen.webp stretched to 1100x560, then upscaled again by the
          #game transform — a double resample that softened the thin neon line
          and read as "not smooth" on load. Vector has no resample, no decode. */
       background:
@@ -2011,6 +1980,24 @@
       display: block;
     }
 
+    /* Camera push-in: as Ira runs in we zoom the whole stage toward the
+       podium↔button cluster. Driven by a keyframe (not a transition) so it never
+       fights #playStage's opacity fades. Origin math at scale 1.3 (visible
+       window = 985×554 of the 1280×720 stage): the podium art in LetsPlayBg
+       spans x≈109–627 with its base at y≈711, so the origin is pinned
+       left/bottom (35% 95%) to keep the podium fully in frame — the crop eats
+       the empty far-right and top instead. Window ≈ [103→1088] × [158→712]:
+       podium, Ira and the Play button (x 650–830) all stay inside. */
+    #playStage.preplay-mode.cam-push {
+      transform-origin: 35% 95%;
+      animation: playCamPush 3.8s cubic-bezier(.22, .8, .3, 1) forwards;
+    }
+
+    @keyframes playCamPush {
+      from { transform: scale(1); }
+      to   { transform: scale(1.3); }
+    }
+
     #playButton {
       position: absolute;
       right: 56px;
@@ -2084,7 +2071,9 @@
     }
 
     #playStage.preplay-mode #playButton {
-      left: 736px;
+      /* Sits just right of the podium (art edge ≈ x627) so Ira's point lands
+         on it — well inside the cam-push window (x 103→1088). */
+      left: 650px;
       right: auto;
       top: 312px;
       bottom: auto;
@@ -2454,7 +2443,7 @@
       50% { opacity: .7; }
     }
 
-    /* ── LaserMachine.png overlay (tutorial guide lines, same ring center) ── */
+    /* ── LaserMachine.webp overlay (tutorial guide lines, same ring center) ── */
     #tutorialOverlay {
       position: absolute;
       left: 50%;
@@ -2506,7 +2495,7 @@
       opacity: 1;
     }
 
-    /* ── Laser.png — rotating sprite (Laser.png: 258×172, nozzle on the right) ── */
+    /* ── Laser.webp — rotating sprite (Laser.webp: 258×172, nozzle on the right) ── */
     #laserImg {
       position: absolute;
       width: 96px;
@@ -2849,7 +2838,7 @@
       z-index: 26;
     }
 
-    /* ── TappedCutButton.png tutorial highlight ── */
+    /* ── TappedCutButton.webp tutorial highlight ── */
     #cutOverlay {
       position: absolute;
       left: 50%;
@@ -3612,7 +3601,7 @@
 
 <body>
   <main id="game" aria-label="PowerUp Bots halves game">
-    <img id="sceneBg" class="bg" src="assets/Mainbg.png" alt="">
+    <img id="sceneBg" class="bg" src="assets/Mainbg.webp" alt="">
 
     <!-- Focus scrim: a soft dark wash that sits just above the background and
          below every interactive object, so the laser apparatus, bots and
@@ -3620,8 +3609,8 @@
     <div id="focusScrim" aria-hidden="true"></div>
 
     <section id="instruction" class="hidden" aria-live="polite">
-      <img class="insn-panel" src="assets/instructionPannel.png" alt="">
-      <img class="insn-face" src="assets/instructionPannel.png" alt="">
+      <img class="insn-panel" src="assets/instructionPannel.webp" alt="">
+      <img class="insn-face" src="assets/instructionPannel.webp" alt="">
       <div id="instructionText"></div>
     </section>
 
@@ -3629,13 +3618,13 @@
       <div id="bots" class="layout-intro">
         <div class="bot-slot left-bot">
           <div class="target-fill" id="leftFill"></div>
-          <img class="pod-img" id="leftPod" src="assets/SquareHollow.png" alt="">
-          <img class="bot-img" id="leftBot" src="assets/SquareBotSadState.png" alt="">
+          <img class="pod-img" id="leftPod" src="assets/SquareHollow.webp" alt="">
+          <img class="bot-img" id="leftBot" src="assets/SquareBotSadState.webp" alt="">
         </div>
         <div class="bot-slot right-bot">
           <div class="target-fill" id="rightFill"></div>
-          <img class="pod-img" id="rightPod" src="assets/SquareHollow.png" alt="">
-          <img class="bot-img" id="rightBot" src="assets/SquareBotSadState.png" alt="">
+          <img class="pod-img" id="rightPod" src="assets/SquareHollow.webp" alt="">
+          <img class="bot-img" id="rightBot" src="assets/SquareBotSadState.webp" alt="">
         </div>
       </div>
 
@@ -3646,18 +3635,18 @@
       </div>
 
       <section id="playStage" class="hidden">
-        <img id="playBg" src="assets/GameStartScreen.png" alt="">
+        <img id="playBg" src="assets/GameStartScreen.webp" alt="">
         <div id="playFx" aria-hidden="true"></div>
         <div id="iraGlowRing" aria-hidden="true"></div>
         <video id="iraChar" src="assets/IraVid1.webm" muted playsinline preload="auto" aria-hidden="true"></video>
         <button id="playButton" type="button" aria-label="Let's go">
-          <img id="playButtonImg" src="assets/PlayButton.png" alt="Play">
+          <img id="playButtonImg" src="assets/PlayButton.webp" alt="Play">
         </button>
       </section>
 
       <div id="machineStage" class="hidden" aria-hidden="true">
         <!-- base machine (always LaserMachineWithoutLines) -->
-        <img id="machineImg" src="assets/LaserMachineWithoutLines.png" alt="">
+        <img id="machineImg" src="assets/LaserMachineWithoutLines.webp" alt="">
         <!-- inline LaserMachine.svg for 3rd-attempt highlight (hidden by default) -->
         <div id="machineSvgLayer" aria-hidden="true"></div>
         <!-- LaserMachine.svg overlay — tutorial guide lines only -->
@@ -3665,24 +3654,23 @@
         <img id="guideLineHighlight" src="assets/LaserMachine.svg" alt="" aria-hidden="true">
         <!-- Beam.svg — hidden by default, only shown on CUT -->
         <img id="beamImg" src="assets/Beam.svg" alt="" aria-hidden="true">
-        <!-- Laser.png rotating sprite -->
-        <img id="laserImg" src="assets/Laser.png" alt="" aria-hidden="true">
+        <!-- Laser.webp rotating sprite -->
+        <img id="laserImg" src="assets/Laser.webp" alt="" aria-hidden="true">
         <div id="blockCover"></div>
         <div id="machineBlock"></div>
-        <img id="laserBurst" src="assets/laserlight.png" alt="">
+        <img id="laserBurst" src="assets/laserlight.webp" alt="">
         <div id="cutLine"></div>
         <div id="wrongSlash"></div>
         <!-- Tutorial instruction bubbles (below left/right buttons; above cut button) -->
-        <img id="bubbleLeft" class="tutorial-bubble" src="assets/InstruictionTutorialLeft.png" alt="">
-        <img id="bubbleRight" class="tutorial-bubble" src="assets/InstructionTutorialRight.png" alt="">
-        <img id="bubbleCut" class="tutorial-bubble" src="assets/InstructionTutorialCutButton.png" alt="">
+        <img id="bubbleLeft" class="tutorial-bubble" src="assets/InstruictionTutorialLeft.webp" alt="">
+        <img id="bubbleRight" class="tutorial-bubble" src="assets/InstructionTutorialRight.webp" alt="">
+        <img id="bubbleCut" class="tutorial-bubble" src="assets/InstructionTutorialCutButton.webp" alt="">
         <!-- Visible button images (src swaps on press) -->
-        <img id="btnLeft" src="assets/LeftButton.png" alt="" aria-hidden="true">
-        <img id="btnRight" src="assets/RightButton.png" alt="" aria-hidden="true">
-        <img id="btnCut" src="assets/CutButton.png" alt="" aria-hidden="true">
-        <!-- TappedCutButton.png tutorial highlight -->
-        <img id="cutOverlay" src="assets/TappedCutButton.png" alt="" aria-hidden="true">
-        <img id="handGesture" class="hand-gesture hidden" src="assets/hand.svg" alt="" aria-hidden="true">
+        <img id="btnLeft" src="assets/LeftButton.webp" alt="" aria-hidden="true">
+        <img id="btnRight" src="assets/RightButton.webp" alt="" aria-hidden="true">
+        <img id="btnCut" src="assets/CutButton.webp" alt="" aria-hidden="true">
+        <!-- TappedCutButton.webp tutorial highlight -->
+        <img id="cutOverlay" src="assets/TappedCutButton.webp" alt="" aria-hidden="true">
         <!-- Invisible hit areas -->
         <button id="hitLeft" class="machine-hit" type="button" aria-label="Move laser left"></button>
         <button id="hitRight" class="machine-hit" type="button" aria-label="Move laser right"></button>
@@ -3692,11 +3680,11 @@
       <div id="flightLayer" aria-hidden="true"></div>
 
       <button id="tryAgain" class="hidden" type="button" aria-label="Try again">
-        <img src="assets/TryAgainButton.png" alt="">
+        <img src="assets/TryAgainButton.webp" alt="">
       </button>
 
       <button id="nextButton" class="hidden" type="button" aria-label="Next">
-        <img src="assets/nextButton.png" alt="">
+        <img src="assets/nextButton.webp" alt="">
       </button>
     </section>
 
@@ -3719,17 +3707,17 @@
       <div class="complete-bots" aria-hidden="true">
         <div class="complete-bot">
           <div class="complete-token complete-token-rect"></div>
-          <img class="complete-bot-img" style="--bot-w:190px" src="assets/happyPinkBot.png" alt="">
+          <img class="complete-bot-img" style="--bot-w:190px" src="assets/happyPinkBot.webp" alt="">
           <div class="complete-ground-shadow"></div>
         </div>
         <div class="complete-bot">
           <div class="complete-token complete-token-triangle"></div>
-          <img class="complete-bot-img" style="--bot-w:216px" src="assets/HappyTriangleBot.png" alt="">
+          <img class="complete-bot-img" style="--bot-w:216px" src="assets/HappyTriangleBot.webp" alt="">
           <div class="complete-ground-shadow"></div>
         </div>
         <div class="complete-bot">
           <div class="complete-token complete-token-circle"></div>
-          <img class="complete-bot-img" style="--bot-w:190px" src="assets/HappyCircleBot.png" alt="">
+          <img class="complete-bot-img" style="--bot-w:190px" src="assets/HappyCircleBot.webp" alt="">
           <div class="complete-ground-shadow"></div>
         </div>
       </div>
@@ -3802,7 +3790,7 @@
     }
     var _themeAudio = (function () {
       try {
-        var a = new Audio("audios/ThemeMusic.mp3");
+        var a = new Audio("audios/ThemeMusic.ogg");
         a.loop = true;
         a.volume = THEME_BASE_VOLUME;
         return a;
@@ -3819,7 +3807,7 @@
         _themeAudio.volume = THEME_BASE_VOLUME;
       }
     }
-    var PLUG_CONNECT_AUDIO_SRC = "audios/PlugConnect.mp3";
+    var PLUG_CONNECT_AUDIO_SRC = "audios/PlugConnect.ogg";
     var PLUG_CONNECT_VOLUME = 1;
     var _plugConnectMediaSrc = "";
     var _laserCutAudio = null;
@@ -4014,7 +4002,7 @@
     function playLaserCutMedia() {
       try {
         if (!_laserCutAudio) {
-          _laserCutAudio = new Audio("audios/laserSound.mp3");
+          _laserCutAudio = new Audio("audios/laserSound.ogg");
           _laserCutAudio.preload = "auto";
           _laserCutAudio.volume = 0.95;
           var releaseLaser = function () {
@@ -4266,7 +4254,7 @@
           state.plugConnectPlayed[targetRound] = true;
         }).catch(function () {
           /* Autoplay blocked the timed plug moment. Keep the real MP3 queued
-             so the next user gesture can trigger PlugConnect.mp3. */
+             so the next user gesture can trigger PlugConnect.ogg. */
           queuePendingPlugConnect(targetRound);
         });
         return;
@@ -4353,18 +4341,18 @@
       {
         name: "rectangle",
         label: "Rectangle",
-        blockSrc: ASSETS + "RectangleBlock.png",
+        blockSrc: ASSETS + "RectangleBlock.webp",
         blockW: 220,
         blockH: 110,
         cut: "vertical",
         startAngle: 45,
         targetAngle: 90,
         targetAngle2: 270,
-        sadBot: ASSETS + "SquareBotSadState.png",
-        happyBot: ASSETS + "happyPinkBot.png",
-        pod: ASSETS + "SquareHollow.png",
-        podLeft: ASSETS + "SquareHollow.png",
-        podRight: ASSETS + "SquareHollow.png",
+        sadBot: ASSETS + "SquareBotSadState.webp",
+        happyBot: ASSETS + "happyPinkBot.webp",
+        pod: ASSETS + "SquareHollow.webp",
+        podLeft: ASSETS + "SquareHollow.webp",
+        podRight: ASSETS + "SquareHollow.webp",
         podW: 132,
         botAspect: 894 / 606,
         podAspectLeft: 1056 / 444,
@@ -4390,16 +4378,16 @@
         name: "rectangle",
         label: "Rectangle",
         variant: "rectangle-flat-hcut",
-        blockSrc: ASSETS + "RectangleBlock.png",
+        blockSrc: ASSETS + "RectangleBlock.webp",
         blockW: 220, blockH: 110,
         cut: "horizontal",
         startAngle: 45,
         targetAngle: 0, targetAngle2: 180,
-        sadBot: ASSETS + "SquareBotSadState.png",
-        happyBot: ASSETS + "happyPinkBot.png",
-        pod: ASSETS + "RectangleHollow2.png",
-        podLeft: ASSETS + "RectangleHollow2.png",
-        podRight: ASSETS + "RectangleHollow2.png",
+        sadBot: ASSETS + "SquareBotSadState.webp",
+        happyBot: ASSETS + "happyPinkBot.webp",
+        pod: ASSETS + "RectangleHollow2.webp",
+        podLeft: ASSETS + "RectangleHollow2.webp",
+        podRight: ASSETS + "RectangleHollow2.webp",
         podW: 168,
         botAspect: 894 / 606,
         podAspectLeft: 1118 / 774, podAspectRight: 1118 / 774,
@@ -4414,9 +4402,10 @@
         slotXOffset: { left: 0, right: 0 },
         visualFitScale: 0.96,
         fitPieceScale: { left: { x: 1.04, y: 1.18 }, right: { x: 1.04, y: 1.2 } },
+        /* Hollow-highlight frame: hand-tuned to the shallow hollow band —
+           this round's fill box is seating geometry, not the hollow art. */
         focusFrameSize: { wRatio: 0.98, hRatio: 0.30 },
         focusFrameOffset: { top: 15 },
-        hollowFocusClip: "inset(6% 1% 73% 1% round 10px)",
         previewFitScale: 0.9, previewSlotNudge: { y: -4 },
         happyBotAspect: 838 / 620, happyBotW: 163
       },
@@ -4424,18 +4413,18 @@
         name: "rectangle",
         label: "Rectangle",
         variant: "rectangle-vertical",
-        blockSrc: ASSETS + "RectangleBlock.png",
+        blockSrc: ASSETS + "RectangleBlock.webp",
         blockW: 200,
         blockH: 200,
         cut: "vertical",
         startAngle: 45,
         targetAngle: 90,
         targetAngle2: 270,
-        sadBot: ASSETS + "SquareBotSadState.png",
-        happyBot: ASSETS + "happyPinkBot.png",
-        pod: ASSETS + "VerticalRectangleHollow.png",
-        podLeft: ASSETS + "VerticalRectangleHollow.png",
-        podRight: ASSETS + "VerticalRectangleHollow.png",
+        sadBot: ASSETS + "SquareBotSadState.webp",
+        happyBot: ASSETS + "happyPinkBot.webp",
+        pod: ASSETS + "VerticalRectangleHollow.webp",
+        podLeft: ASSETS + "VerticalRectangleHollow.webp",
+        podRight: ASSETS + "VerticalRectangleHollow.webp",
         podW: 130,
         botAspect: 894 / 606,
         podAspectLeft: 1242 / 444,
@@ -4455,7 +4444,7 @@
         slotOverflow: "hidden",
         visualFitScale: 1,
         fitPieceScale: { left: { x: 0.99, y: 1.14 }, right: { x: 0.99, y: 1.14 } },
-        focusFrameSize: { wRatio: 0.56, hRatio: 1.30 },
+        hollowFocusFromSlot: true,
         previewFitScale: 0.92,
         happyBotAspect: 838 / 620,
         happyBotW: 163
@@ -4464,18 +4453,22 @@
         name: "rectangle",
         label: "Rectangle",
         variant: "rectangle-wide-hcut",
-        blockSrc: ASSETS + "RectangleBlock.png",
+        blockSrc: ASSETS + "RectangleBlock.webp",
         blockW: 200,
         blockH: 200,
         cut: "horizontal",
         startAngle: 45,
         targetAngle: 0,
         targetAngle2: 180,
-        sadBot: ASSETS + "SquareBotSadState.png",
-        happyBot: ASSETS + "happyPinkBot.png",
-        pod: ASSETS + "RectangleHollow.png",
-        podLeft: ASSETS + "RectangleHollow.png",
-        podRight: ASSETS + "RectangleHollow.png",
+        /* The block is square (200×200), so EITHER 90° cut yields identical
+           halves. Accept horizontal and vertical; fitAngleForRound seats a
+           vertical cut's halves into the same wide hollows. */
+        acceptedAngles: [0, 90, 180, 270],
+        sadBot: ASSETS + "SquareBotSadState.webp",
+        happyBot: ASSETS + "happyPinkBot.webp",
+        pod: ASSETS + "RectangleHollow.webp",
+        podLeft: ASSETS + "RectangleHollow.webp",
+        podRight: ASSETS + "RectangleHollow.webp",
         podW: 168,
         botAspect: 894 / 606,
         podAspectLeft: 1074 / 600,
@@ -4496,8 +4489,7 @@
         slotXOffset: { left: 0, right: 0 },
         visualFitScale: 1.0,
         fitPieceScale: { left: { x: 1.14, y: 1.03 }, right: { x: 1.14, y: 1.03 } },
-        focusFrameSize: { wRatio: 0.97, hRatio: 0.46 },
-        focusFrameOffset: { top: 2 },
+        hollowFocusFromSlot: true,
         previewFitScale: 0.92,
         previewSlotNudge: { y: -4 },
         happyBotAspect: 838 / 620,
@@ -4517,11 +4509,11 @@
            triangles of the 45°/225° (backslash) cut; fitAngleForRound seats
            them into the same triangular hollows. */
         acceptedAngles: [45, 135, 225, 315],
-        sadBot: ASSETS + "SquareBOt.png",
-        happyBot: ASSETS + "HappyTriangleBot.png",
-        pod: ASSETS + "TriangularHollowLeft.png",
-        podLeft: ASSETS + "TriangularHollowLeft.png",
-        podRight: ASSETS + "TriangularHollowRight.png",
+        sadBot: ASSETS + "SquareBOt.webp",
+        happyBot: ASSETS + "HappyTriangleBot.webp",
+        pod: ASSETS + "TriangularHollowLeft.webp",
+        podLeft: ASSETS + "TriangularHollowLeft.webp",
+        podRight: ASSETS + "TriangularHollowRight.webp",
         podW: 142,
         botAspect: 784 / 742,
         podAspectLeft: 1054 / 469,
@@ -4547,18 +4539,23 @@
         name: "circle",
         label: "Circle",
         variant: "circle-horizontal",
-        blockSrc: ASSETS + "CircleBlock.png",
+        blockSrc: ASSETS + "CircleBlock.webp",
         blockW: 130,
         blockH: 130,
         cut: "horizontal",
         startAngle: 45,
         targetAngle: 0,
         targetAngle2: 180,
-        sadBot: ASSETS + "CircleBot.png",
-        happyBot: ASSETS + "HappyCircleBot.png",
-        pod: ASSETS + "SemiCircleHollowleft.png",
-        podLeft: ASSETS + "SemiCircleHollowleft.png",
-        podRight: ASSETS + "SemiCircleHollowright.png",
+        /* A circle is halved by ANY diameter — every laser angle is a correct
+           cut. Non-horizontal cuts rotate to the horizontal pair on the result
+           screen before flying into the dome/bowl hollows (fitAngleForRound +
+           the rotate step in showSuccess). */
+        acceptedAngles: [0, 45, 90, 135, 180, 225, 270, 315],
+        sadBot: ASSETS + "CircleBot.webp",
+        happyBot: ASSETS + "HappyCircleBot.webp",
+        pod: ASSETS + "SemiCircleHollowleft.webp",
+        podLeft: ASSETS + "SemiCircleHollowleft.webp",
+        podRight: ASSETS + "SemiCircleHollowright.webp",
         podW: 132,
         botAspect: 893 / 896,
         podAspectLeft: 1098 / 520,
@@ -4569,8 +4566,14 @@
         readyPodTop: 258,
         slotSize: { width: 100, height: 49 },
         slotOffset: { left: 19, right: 22 },
+        slotXOffset: { left: 0, right: 0 },
         visualFitScale: 1.0,
-        fitPieceScale: { x: 1.0, y: 1.0 },
+        /* Hand-tuned via the ?debug fit panel (2026-07-13): semicircles need a
+           slight stretch to seat flush in the dome/bowl hollows. */
+        fitPieceScale: {
+          left: { x: 1.06, y: 1.1 },
+          right: { x: 1.06, y: 1.1 }
+        },
         happyConnectorNudge: 2,
         slotFocus: {
           left: "ellipse(50% 100% at 50% 0)",
@@ -4791,10 +4794,10 @@
       state.nextAction = action || null;
       hide(els.nextButton);
       els.nextButton.classList.remove("is-success");
-      els.nextButton.querySelector("img").src = "assets/nextButton.png";
+      els.nextButton.querySelector("img").src = "assets/nextButton.webp";
       later(function () {
         els.nextButton.classList.remove("is-success");
-        els.nextButton.querySelector("img").src = "assets/nextButton.png";
+        els.nextButton.querySelector("img").src = "assets/nextButton.webp";
         show(els.nextButton);
       }, TIMING.TEACH_NEXT_BUTTON);
     }
@@ -4824,12 +4827,19 @@
         void els.instruction.offsetWidth;
         els.instruction.classList.add("insn-entering");
       }
+      /* options.audioDelay staggers the VO behind the panel's entrance
+         (face → panel → text, ≈0.82s) instead of speaking over it. Callers
+         that need the returned Audio element must not use this option. */
+      if (options && options.audioDelay) {
+        later(function () { playInstructionAudio(text, options); }, options.audioDelay);
+        return null;
+      }
       return playInstructionAudio(text, options);
     }
 
     function resetScene() {
       els.sceneBg.style.display = "none";
-      els.sceneBg.src = ASSETS + "Mainbg.png";
+      els.sceneBg.src = ASSETS + "Mainbg.webp";
       state.teachingActive = false;
       els.game.classList.remove("teaching-active", "laser-intro");
       /* Clear inline transitions/transforms left over by the previous round's
@@ -4864,7 +4874,7 @@
       hide(els.tryAgain);
       hide(els.nextButton);
       els.nextButton.classList.remove("is-success");
-      els.nextButton.querySelector("img").src = "assets/nextButton.png";
+      els.nextButton.querySelector("img").src = "assets/nextButton.webp";
       hide(els.completeStage);
       state.nextAction = null;
       els.shapeStage.innerHTML = "";
@@ -4896,9 +4906,9 @@
       });
       els.cutOverlay.classList.remove("show");
       els.cutOverlay.classList.remove("flash");
-      els.btnLeft.src = ASSETS + "LeftButton.png";
-      els.btnRight.src = ASSETS + "RightButton.png";
-      els.btnCut.src = ASSETS + "CutButton.png";
+      els.btnLeft.src = ASSETS + "LeftButton.webp";
+      els.btnRight.src = ASSETS + "RightButton.webp";
+      els.btnCut.src = ASSETS + "CutButton.webp";
       els.btnLeft.classList.remove("tut-highlight");
       els.btnRight.classList.remove("tut-highlight");
       els.btnCut.classList.remove("tut-highlight");
@@ -5276,36 +5286,34 @@
         return;
       }
 
-      var layer = document.createElement("img");
-      layer.className = "pod-hollow-focus";
-      layer.src = podEl.src;
-      layer.alt = "";
-      layer.setAttribute("aria-hidden", "true");
-      layer.style.top = podEl.style.top;
-      layer.style.width = podEl.style.width;
-      layer.style.transform = podEl.style.transform;
-      layer.style.marginLeft = podEl.style.marginLeft || "0px";
-      if (r && r.hollowFocusClip) {
-        layer.style.clipPath = r.hollowFocusClip;
-      }
-      slotEl.insertBefore(layer, podEl.nextSibling);
-
+      /* Rectangle rounds — frame geometry comes from one of two sources:
+         · hollowFocusFromSlot rounds (vertical, wide-hcut): anchor to the FILL
+           box — there the fill (slotSize/slotOffset/slotXOffset) sits exactly
+           on the hollow, and both elements share the same anchoring scheme
+           (left:50%, translateX(-50%), top + margin-left).
+         · everything else (plain rectangle, flat-hcut): the fill box is tuned
+           for piece SEATING, not the hollow art, so anchoring to it drifts.
+           These use the original podW-ratio sizing via focusFrameSize /
+           focusFrameOffset (defaults 0.79). */
       var frame = document.createElement("div");
       frame.className = "pod-hollow-focus-frame";
       frame.setAttribute("aria-hidden", "true");
-      var focusOffset = (r && r.focusFrameOffset) || {};
-      var focusScale = podW / ((r && r.podW) || podW || 1);
-      frame.style.top = (parseFloat(podEl.style.top) + (focusOffset.top || 0) * focusScale) + "px";
-      var ffs = r && r.focusFrameSize;
-      var wRatio = (ffs && ffs.wRatio) || 0.79;
-      var hRatio = (ffs && ffs.hRatio) || 0.79;
-      frame.style.setProperty("--hollow-focus-w", Math.round(podW * wRatio) + "px");
-      frame.style.setProperty("--hollow-focus-h", Math.round(podW * hRatio) + "px");
-      frame.style.marginLeft = ((parseFloat(podEl.style.marginLeft) || 0) + (focusOffset.x || 0) * focusScale) + "px";
-      if (podEl.style.transform && podEl.style.transform.indexOf("scaleX(-1)") !== -1) {
-        frame.style.transform = "translateX(-50%) scaleX(-1)";
+      if (r && r.hollowFocusFromSlot) {
+        var fillEl = side === "right" ? els.rightFill : els.leftFill;
+        frame.style.top = fillEl.style.top;
+        frame.style.setProperty("--hollow-focus-w", fillEl.style.width);
+        frame.style.setProperty("--hollow-focus-h", fillEl.style.height);
+        frame.style.marginLeft = fillEl.style.marginLeft || "0px";
+      } else {
+        var focusOffset = (r && r.focusFrameOffset) || {};
+        var focusScale = podW / ((r && r.podW) || podW || 1);
+        var ffs = r && r.focusFrameSize;
+        frame.style.top = (parseFloat(podEl.style.top) + (focusOffset.top || 0) * focusScale) + "px";
+        frame.style.setProperty("--hollow-focus-w", Math.round(podW * ((ffs && ffs.wRatio) || 0.79)) + "px");
+        frame.style.setProperty("--hollow-focus-h", Math.round(podW * ((ffs && ffs.hRatio) || 0.79)) + "px");
+        frame.style.marginLeft = ((parseFloat(podEl.style.marginLeft) || 0) + (focusOffset.x || 0) * focusScale) + "px";
       }
-      slotEl.insertBefore(frame, layer.nextSibling);
+      slotEl.insertBefore(frame, podEl.nextSibling);
     }
 
     function setupBots(layout, options) {
@@ -5461,7 +5469,7 @@
       if (r && r.happyBotXOffset) {
         return side === "right" ? (r.happyBotXOffset.right || 0) : (r.happyBotXOffset.left || 0);
       }
-      if (r && r.happyBot === ASSETS + "happyPinkBot.png") {
+      if (r && r.happyBot === ASSETS + "happyPinkBot.webp") {
         return -5;
       }
       return 0;
@@ -5922,6 +5930,14 @@
       if (r && r.name === "square" && (orientation === "slash" || orientation === "backslash")) {
         return 2;
       }
+      /* Circle-horizontal diagonal splits: 24/√2 ≈ 17 keeps each half at the
+         SAME distance from center as the horizontal split (offsets are (±g,±g)
+         diagonally vs (0,±g) horizontally), so the rotate-to-horizontal step in
+         showSuccess maps the arrangement exactly — no separation snap. */
+      if (r && r.name === "circle" && r.variant === "circle-horizontal" &&
+        (orientation === "slash" || orientation === "backslash")) {
+        return 17;
+      }
       if (r && r.name === "circle" && r.variant === "circle-diagonal" &&
         (orientation === "slash" || orientation === "backslash")) {
         return 2;
@@ -6275,27 +6291,28 @@
         var centroid = polygonCentroid(points);
         var dx = parseFloat(piece.dataset.gapX || "0");
         var dy = parseFloat(piece.dataset.gapY || "0");
+        var minX = Math.min.apply(null, points.map(function (p) { return p.x; }));
         var maxX = Math.max.apply(null, points.map(function (p) { return p.x; }));
         var bottom = Math.max.apply(null, points.map(function (p) { return p.y; }));
-        var labelGap = (orientation === "slash" || orientation === "backslash") ? 10 : 10;
-        /* For circle rounds with diagonal cuts the visible half-disk's bottom is the
-           chord-circle intersection on the "upper" side (~0.854h), not the polygon
-           bottom corner (h). Pull the label up to match the actual curve. */
-        if (r.name === "circle" && (orientation === "slash" || orientation === "backslash")) {
-          var upperPiece = index === 0;
-          if (upperPiece) {
-            bottom = height * (2 + Math.sqrt(2)) / 4;
-          }
+        /* "Half" sits BESIDE its piece, vertically centred on the centroid,
+           instead of underneath — under-piece labels crowded the gap between
+           the two stacked halves. Horizontal pairs read best with both labels
+           on the left; diagonal pairs put each label on its piece's outward
+           side (the direction it slides apart, from dataset.gapX). Vertical
+           pairs sit side-by-side, so below each piece stays uncluttered. */
+        var sideGap = 44;
+        var sideY = pad + centroid.y + dy - 14;
+        if (orientation === "horizontal") {
+          return { x: pad + minX + dx - sideGap, y: sideY };
         }
-        if (r.cut === "diagonal" && orientation === "backslash" && index === 0) {
-          return {
-            x: pad + maxX + dx + 36,
-            y: pad + centroid.y + dy + 8
-          };
+        if (orientation === "slash" || orientation === "backslash") {
+          return dx > 0
+            ? { x: pad + maxX + dx + sideGap, y: sideY }
+            : { x: pad + minX + dx - sideGap, y: sideY };
         }
         return {
           x: pad + centroid.x + dx,
-          y: pad + bottom + dy + labelGap
+          y: pad + bottom + dy + 10
         };
       }
 
@@ -6603,8 +6620,26 @@
 
       if (step.scene === "intro") {
         els.sceneBg.style.display = "block";
-        setInstruction(text);
         setupBots("layout-intro");
+        if (_gateBusy) {
+          /* Arrived through the lab gate: the scene is still covered. Sequence
+             the reveal instead of overlapping — doors part (1.15s) → beat of
+             quiet (~0.55s) → panel pops in (entrance ≈0.82s) → VO speaks. */
+          later(function () {
+            setInstruction(text, { audioDelay: 850 });
+            /* The generic step.duration advance is skipped on this path (see
+               the early return below): the VO only begins at ~2.55s, so a
+               blind 3.8s timer would clip it. Instead, advance once the VO
+               actually finishes, plus a short settle beat. The hook is armed
+               after the delayed audio has started; whenInstructionAudioEnds
+               has its own fallback so the flow can never stall. */
+            later(function () {
+              whenInstructionAudioEnds(function () { later(nextStep, 600); });
+            }, 900);
+          }, 1700);
+          return;
+        }
+        setInstruction(text);
       }
 
       if (step.scene === "plug") {
@@ -6642,11 +6677,12 @@
         state.locked = false;
         setInstruction("");
         setupBots("layout-clear");
-        els.playBg.src = ASSETS + "GameStartScreen.png";
-        els.playButtonImg.src = ASSETS + "PlayButton.png";
+        els.playBg.src = ASSETS + "GameStartScreen.webp";
+        els.playButtonImg.src = ASSETS + "PlayButton.webp";
         els.playButtonImg.alt = "Play";
         els.playButton.setAttribute("aria-label", "Play");
         els.playStage.classList.add("start-mode");
+        els.playStage.classList.remove("cam-push");
         els.iraChar.classList.remove("play-idle");
         els.iraChar.style.transition = "";
         els.iraChar.style.transform = "";
@@ -6708,19 +6744,18 @@
       renderStep();
     }
 
-    /* ── Tutorial guided sequence (4 moves × 4 cuts demo) ── */
-    var TUTORIAL_START_ANGLE = 180;
-    /* Angles the laser moves to at each movement step (steps 0,2,4,6) */
-    var TUTORIAL_STEP_ANGLES = [135, 90, 225, 270];
+    /* ── Tutorial guided sequence (2 moves × 2 cuts demo) ──
+       Position convention: 0°=right, 90°=bottom, 135°=bottom-left, 180°=left
+       (screen-y down). The laser starts on the "/" diagonal (bottom-left,
+       line family 45°), moves to the bottom for a vertical cut, then returns
+       to the same diagonal for the second cut — teaching both buttons.
+       Right button = −45° (counterclockwise), left button = +45° (clockwise). */
+    var TUTORIAL_START_ANGLE = 135;
     var TUT = [
-      { bubble: "right", btn: "right" },   /* step 0: move right → 135° */
-      { bubble: "cut", btn: "cut" },     /* step 1: cut at 135° */
-      { bubble: "right", btn: "right" },   /* step 2: move right → 90° */
-      { bubble: "cut", btn: "cut" },     /* step 3: cut at 90° */
-      { bubble: "left", btn: "left" },    /* step 4: move left → 225° */
-      { bubble: "cut", btn: "cut" },     /* step 5: cut at 225° */
-      { bubble: "left", btn: "left" },    /* step 6: move left → 270° */
-      { bubble: "cut", btn: "cut" }      /* step 7: cut at 270° — last, advance to play */
+      { bubble: "right", btn: "right" },   /* step 0: move right → 90° (vertical line) */
+      { bubble: "cut", btn: "cut" },     /* step 1: cut at 90° */
+      { bubble: "left", btn: "left" },    /* step 2: move left → back to 135° ("/" diagonal) */
+      { bubble: "cut", btn: "cut" }      /* step 3: cut at 135° — last, advance to play */
     ];
 
     function setupTutorial() {
@@ -6732,7 +6767,7 @@
       state.locked = false;
       state.angle = TUTORIAL_START_ANGLE;
       /* Decode-gate the tutorial background swap. resetScene already left
-         sceneBg at display:none with src=Mainbg.png; if we flip src to
+         sceneBg at display:none with src=Mainbg.webp; if we flip src to
          BgForTutorial and show it before the new bitmap is decoded, the
          element repaints its last-decoded frame (Mainbg) for a frame — the
          reported "wrong background for a sec" flash. Keep it hidden, swap the
@@ -6740,16 +6775,23 @@
          warm-cached at startup, so decode() resolves on the next microtask
          and the reveal is effectively instant with no Mainbg frame. */
       els.sceneBg.style.display = "none";
-      els.sceneBg.src = ASSETS + "BgForTutorial.png";
+      els.sceneBg.src = ASSETS + "BgForTutorial.webp";
       var revealTutorialBg = function () { els.sceneBg.style.display = "block"; };
       if (typeof els.sceneBg.decode === "function") {
         els.sceneBg.decode().then(revealTutorialBg, revealTutorialBg);
       } else {
         revealTutorialBg();
       }
-      setupBots("layout-laser");
+      /* layout-clear, NOT layout-laser: the tutorial never shows the bots —
+         every tutSetStep re-asserts layout-clear anyway. Setting up in the
+         laser layout here made the bots (carried over from the laserIntro
+         scene) stay painted for the first ~900ms and then vanish when
+         tutSetStep(0) cleared them — the "bots flash in then disappear"
+         glitch. Geometry (pods, widths, images) is still fully prepared;
+         the row just never becomes visible. */
+      setupBots("layout-clear");
       setInstruction("");
-      /* LaserMachine.png as tutorial overlay; LaserMachineWithoutLines stays as base */
+      /* LaserMachine.webp as tutorial overlay; LaserMachineWithoutLines stays as base */
       els.tutorialOverlay.classList.add("show");
       els.machineBlock.innerHTML = "";
       els.machineBlock.appendChild(makeBlock(r, r.blockW, r.blockH));
@@ -6901,8 +6943,8 @@
       state.locked = false;
       setInstruction("");
       setupBots("layout-clear");
-      els.playBg.src = ASSETS + "LetsPlayBg.png";
-      els.playButtonImg.src = ASSETS + "PlayButton.png";
+      els.playBg.src = ASSETS + "LetsPlayBg.webp";
+      els.playButtonImg.src = ASSETS + "PlayButton.webp";
       els.playButtonImg.alt = "Play";
       els.playButton.setAttribute("aria-label", "Play");
       els.playStage.classList.add("preplay-mode");
@@ -6911,6 +6953,8 @@
       els.playButton.style.opacity = "0";
       els.playButton.style.transform = "scale(0.85) translateY(16px)";
       els.iraGlowRing.classList.remove("show");
+      // Reset the camera to the wide framing; the push-in is armed as Ira arrives.
+      els.playStage.classList.remove("cam-push");
       // Park the entrance clip off-screen right, ready to glide in.
       els.iraChar.loop = false;
       els.iraChar.style.transition = "none";
@@ -6923,15 +6967,22 @@
         els.playButton.classList.add("play-ready");
       }
 
-      // Phase 2: Ira has arrived. Loop the talking clip, drop her shadow, then
-      // play the VOs. The Play button appears the moment "Let's play." begins.
+      // Phase 2: Ira has arrived. Play the talking/pointing clip ONCE and freeze
+      // on its last frame (her pointing at the Play button) — no loop. Drop her
+      // shadow, then play the VOs. The Play button appears when "Let's play." begins.
       var spoke = false;
       function playIraVid2AndSpeak() {
         if (spoke) { return; }
         spoke = true;
-        els.iraChar.loop = true;
+        els.iraChar.loop = false;
         els.iraChar.src = ASSETS + "IraVid2.webm";
         els.iraChar.play().catch(function () {});
+        // Hold on the final pointing frame once the clip finishes.
+        function freezeOnPoint() {
+          els.iraChar.removeEventListener("ended", freezeOnPoint);
+          els.iraChar.pause();
+        }
+        els.iraChar.addEventListener("ended", freezeOnPoint);
         els.iraGlowRing.classList.add("show");
         var first = playInstructionAudio("You are all set.");
         whenInstructionAudioEnds(first, function () {
@@ -6965,13 +7016,15 @@
           requestAnimationFrame(function () {
             els.iraChar.style.transition = "transform 3.4s cubic-bezier(0.22, 0.8, 0.3, 1)";
             els.iraChar.style.transform = "translateX(0) scaleX(-1)";
+            // Camera pushes in toward Ira + the Play button as she glides in.
+            els.playStage.classList.add("cam-push");
           });
         });
       }
 
-      // Wait for the new LetsPlayBg.png to finish decoding before unhiding the
+      // Wait for the new LetsPlayBg.webp to finish decoding before unhiding the
       // stage; otherwise the <img> keeps painting the previously-decoded
-      // GameStartScreen.png for a frame, flashing the start screen.
+      // GameStartScreen.webp for a frame, flashing the start screen.
       if (typeof els.playBg.decode === "function") {
         els.playBg.decode().then(startPreplaySequence, startPreplaySequence);
       } else {
@@ -7050,7 +7103,7 @@
     var LASER_SRC_H = 172;
     var LASER_W = 96;
     var LASER_H = 64;
-    /* Source-pixel anchors in Laser.png: rear body pivot and glowing emission point. */
+    /* Source-pixel anchors in Laser.webp: rear body pivot and glowing emission point. */
     var LASER_BODY_SRC_X = 42;
     var LASER_BODY_SRC_Y = 86;
     var LASER_NOZZLE_SRC_X = 238;
@@ -7217,14 +7270,14 @@
       button.classList.add("pressed");
 
       if (button === els.hitLeft) {
-        els.btnLeft.src = ASSETS + "LeftButtonClicked.png";
-        setTimeout(function () { els.btnLeft.src = ASSETS + "LeftButton.png"; }, 220);
+        els.btnLeft.src = ASSETS + "LeftButtonClicked.webp";
+        setTimeout(function () { els.btnLeft.src = ASSETS + "LeftButton.webp"; }, 220);
       } else if (button === els.hitRight) {
-        els.btnRight.src = ASSETS + "RightButtonClicked.png";
-        setTimeout(function () { els.btnRight.src = ASSETS + "RightButton.png"; }, 220);
+        els.btnRight.src = ASSETS + "RightButtonClicked.webp";
+        setTimeout(function () { els.btnRight.src = ASSETS + "RightButton.webp"; }, 220);
       } else if (button === els.hitCut) {
-        els.btnCut.src = ASSETS + "ClickedCutButton.png";
-        setTimeout(function () { els.btnCut.src = ASSETS + "CutButton.png"; }, 320);
+        els.btnCut.src = ASSETS + "ClickedCutButton.webp";
+        setTimeout(function () { els.btnCut.src = ASSETS + "CutButton.webp"; }, 320);
       }
     }
 
@@ -7276,6 +7329,19 @@
     function fitAngleForRound(r, angle) {
       if (r.name === "square" && cutOrientation(angle) === "slash") {
         return 45;
+      }
+      /* Wide-hcut round's block is square, so a vertical cut's halves are the
+         same shape as the horizontal cut's (rotated 90°). Normalise to the
+         horizontal family so they reuse the known-good fit into the wide
+         hollows; the machine split still shows the player's real cut. */
+      if (r.variant === "rectangle-wide-hcut" && cutOrientation(angle) === "vertical") {
+        return 0;
+      }
+      /* Circle: every diameter cut yields identical semicircles. Seat them as
+         the horizontal dome/bowl pair the hollows are shaped for. */
+      if (r.name === "circle" && r.variant === "circle-horizontal" &&
+        cutOrientation(angle) !== "horizontal") {
+        return 0;
       }
       return angle;
     }
@@ -7359,10 +7425,10 @@
          fx,fy - disc centre        fR - disc radius
          diamAng - flat-edge angle  keepDir - direction into the filled half  */
     var DIAG_HOLLOW_GEOMETRY = {
-      "45angleCircleHollow.png":     { fx: 0.6132, fy: 0.4026, fR: 0.3670, diamAng: 42.5,   keepDir: 135.37, fillFlatPad: 0.20 },
-      "135anglecutCircleHollow.png": { fx: 0.3861, fy: 0.6050, fR: 0.3586, diamAng: 44.40,  keepDir: -43.08, fillExpandPx: 1.7 },
-      "CircleLastFlowHollow1.png":   { fx: 0.6308, fy: 0.6373, fR: 0.3732, diamAng: 134.50, keepDir: -135.26 },
-      "CircleLastFlowHollow2.png":   { fx: 0.4199, fy: 0.3817, fR: 0.3501, diamAng: 136.5,  keepDir: 45.21, fillFlatPad: 0.20, fillAngleOffset: -0.75 }
+      "45angleCircleHollow.webp":     { fx: 0.6132, fy: 0.4026, fR: 0.3670, diamAng: 42.5,   keepDir: 135.37, fillFlatPad: 0.20 },
+      "135anglecutCircleHollow.webp": { fx: 0.3861, fy: 0.6050, fR: 0.3586, diamAng: 44.40,  keepDir: -43.08, fillExpandPx: 1.7 },
+      "CircleLastFlowHollow1.webp":   { fx: 0.6308, fy: 0.6373, fR: 0.3732, diamAng: 134.50, keepDir: -135.26 },
+      "CircleLastFlowHollow2.webp":   { fx: 0.4199, fy: 0.3817, fR: 0.3501, diamAng: 136.5,  keepDir: 45.21, fillFlatPad: 0.20, fillAngleOffset: -0.75 }
     };
     var DIAG_FILL_OVERSCALE = 1.02; // overscale ~2% — arc still seals AA slivers, leaves room for the explicit SVG rim above it
     var DIAG_FILL_FLATPAD   = 0.075; // chord-only tuck; does not increase the circular radius
@@ -7438,7 +7504,7 @@
          cover the AA gap without exposing the PNG's hollow band.
 
          Default 1.0 closed the hairline on three of four pods. The fourth
-         (135anglecutCircleHollow.png) has the smallest measured radius
+         (135anglecutCircleHollow.webp) has the smallest measured radius
          (fR 0.3586) and the default 0.075 chord tuck, so it had the least
          arc cushion and still left a tiny visible hole — overridden via
          geo.fillExpandPx so only that pod expands further, leaving the
@@ -7771,11 +7837,17 @@
       }, 480);
     }
 
-    /* ── fly the two half-pieces from a result/machine center to bot charging slots ── */
-    function flyHalvesToSlots(r, angle, onDone, centerOverride) {
+    /* ── fly the two half-pieces from a result/machine center to bot charging slots ──
+       spinFromAngle (optional): the player's real cut angle when its orientation
+       differs from the fitting angle (wide-hcut round cut vertically). The pieces
+       are then BUILT from the real angle — matching the split screen they take off
+       from — and rotate 90° mid-flight to land in the hollows' orientation. */
+    function flyHalvesToSlots(r, angle, onDone, centerOverride, spinFromAngle) {
       var layer = els.flightLayer;
       layer.innerHTML = "";
 
+      var spin = spinFromAngle !== undefined;
+      var buildAngle = spin ? spinFromAngle : angle;
       var center = centerOverride || machineCenterInGame();
       var targets = slotTargetsFromFills();
 
@@ -7836,18 +7908,18 @@
           return;
         }
 
-        var home = cutPieceHome(r.blockW, r.blockH, angle, pieceIdx, center.x, center.y);
+        var home = cutPieceHome(r.blockW, r.blockH, buildAngle, pieceIdx, center.x, center.y);
         if (centerOverride) {
           var startOffsets = splitOffsetForOrientation(
-            cutOrientation(angle),
-            resultSplitGapForRound(r, cutOrientation(angle))
+            cutOrientation(buildAngle),
+            resultSplitGapForRound(r, cutOrientation(buildAngle))
           );
           home.left += startOffsets[pieceIdx].x;
           home.top += startOffsets[pieceIdx].y;
           home.centerX += startOffsets[pieceIdx].x;
           home.centerY += startOffsets[pieceIdx].y;
         }
-        var fly = makeCutPiece(r, pieceIdx, r.blockW, r.blockH, angle);
+        var fly = makeCutPiece(r, pieceIdx, r.blockW, r.blockH, buildAngle);
         fly.classList.add("flying-half");
         fly.style.left = home.left + "px";
         fly.style.top = home.top + "px";
@@ -7858,7 +7930,13 @@
 
         layer.appendChild(fly);
 
-        var scale = slotScaleForPiece(targets[slotIdx], home) * visualFitScaleForRound(r);
+        /* Scale against the footprint the piece occupies once SEATED — for a
+           spinning flight that's the fit-angle footprint, not the as-built one
+           (square block: their width/height are swapped). */
+        var fitHome = spin
+          ? cutPieceHome(r.blockW, r.blockH, angle, pieceIdx, center.x, center.y)
+          : home;
+        var scale = slotScaleForPiece(targets[slotIdx], fitHome) * visualFitScaleForRound(r);
         /* Match the settled-piece scale (fillSlotWithPiece applies fitPieceScale
            on top of the base fit scale). Without this the piece flies in at the
            un-stretched size and then visibly "grows" the moment it settles. */
@@ -7871,10 +7949,18 @@
         var dx = targets[slotIdx].x - home.centerX;
         var dyOffset = (r.name === "rectangle" && !r.variant) ? 8 : 0;
         var dy = targets[slotIdx].y - home.centerY - dyOffset;
+        /* Spinning flight: rotate(90deg) sits between translate and scale, so
+           the scale acts in the piece's ROTATED local frame — swap the axes
+           (scale(flySy, flySx)) to land at the exact on-screen extents that
+           fillSlotWithPiece settles at. +90° maps each vertical half's rounded
+           outer edge onto the correct top/bottom side of the wide hollow. */
+        var finalTransform = spin
+          ? "translate(" + dx + "px," + dy + "px) rotate(90deg) scale(" + flySy + "," + flySx + ")"
+          : "translate(" + dx + "px," + dy + "px) scale(" + flySx + "," + flySy + ")";
         var stagger = slotIdx * 100;
         setTimeout(function () {
           requestAnimationFrame(function () {
-            fly.style.transform = "translate(" + dx + "px," + dy + "px) scale(" + flySx + "," + flySy + ")";
+            fly.style.transform = finalTransform;
           });
         }, stagger);
       });
@@ -7886,6 +7972,27 @@
       var r = currentRound();
       var cutAngle = state.lastCutAngle;
       var fitAngle = fitAngleForRound(r, cutAngle);
+      /* Vertical cut accepted on a horizontal-slot round (wide-hcut): keep the
+         pre-fit visuals true to the player's cut — the split screen shows the
+         REAL vertical halves, and the flight spins them 90° into the wide
+         hollows. A 90° spin maps vertical halves exactly onto horizontal ones
+         (square block), rounded corners landing on the correct side. Scoped to
+         vertical→horizontal so the square round's diagonal mirroring keeps its
+         existing behavior. */
+      var spinAngle = (cutOrientation(cutAngle) === "vertical" &&
+        cutOrientation(fitAngle) === "horizontal") ? cutAngle : undefined;
+      /* Circle cut off the horizontal family: show the REAL split, then rotate
+         the pair upright before the standard horizontal flight. The circle is
+         rotationally symmetric, so the rotated arrangement lands pixel-exact on
+         the horizontal one (same center-distance via resultSplitGapForRound).
+         Shortest rotation per line family: 45→−45°, 90→−90°, 135→+45°. */
+      var circleRotDelta = 0;
+      if (r.name === "circle" && r.variant === "circle-horizontal") {
+        var cutFam = lineAngleDegrees(cutAngle);
+        if (cutFam !== lineAngleDegrees(fitAngle)) {
+          circleRotDelta = (cutFam === 135) ? 45 : -cutFam;
+        }
+      }
       sndSuccess();
       splitMachineBlock(cutAngle);
       setInstruction("");
@@ -7899,7 +8006,20 @@
            ready state without replaying the plug-connection sequence. */
         setupBots("layout-ready");
         setInstruction("");
-        renderResultSplitScreen(r, fitAngle);
+        renderResultSplitScreen(r,
+          circleRotDelta ? cutAngle : (spinAngle !== undefined ? spinAngle : fitAngle));
+
+        if (circleRotDelta) {
+          /* Beat on the real split, then swing the pair upright. The flight
+             below starts from the horizontal arrangement this lands on. */
+          later(function () {
+            var wrap = els.shapeStage.querySelector(".split-demo");
+            if (wrap) {
+              wrap.style.transition = "transform .55s cubic-bezier(.34, 1.15, .64, 1)";
+              wrap.style.transform = "rotate(" + circleRotDelta + "deg)";
+            }
+          }, 480);
+        }
 
         later(function () {
           hideResultSplitScreen();
@@ -7921,11 +8041,13 @@
               setInstruction("", { forceAudioStop: true });
               state.nextAction = null;
               els.nextButton.classList.add("is-success");
-              els.nextButton.querySelector("img").src = "assets/NextButton2.png";
+              els.nextButton.querySelector("img").src = "assets/NextButton2.webp";
               show(els.nextButton);
             });
-          }, { x: 640, y: 360 });
-        }, 1100);
+          }, { x: 640, y: 360 }, spinAngle);
+          /* With the circle rotate step (480ms delay + 550ms swing), hold the
+             upright pair for a beat before takeoff. */
+        }, circleRotDelta ? 1550 : 1100);
       }
 
       later(function () {
@@ -8206,12 +8328,10 @@
     }
 
     function completeGame() {
-      resetScene();
-      setInstruction("");
-      renderCompleteConfetti();
-      show(els.completeStage);
-      sndConfetti();
-      sndKidsCheer();
+      /* No end screen: this game lives inside a flipbook, which takes over
+         after completion. Leave the final happy-bots scene on screen and just
+         signal the host that the activity is done. (The old "Bots Powered Up!"
+         stage markup remains in the DOM, permanently hidden.) */
       try {
         parent.postMessage({ type: "activity_complete" }, "*");
       } catch (e) { }
@@ -8250,7 +8370,7 @@
       sndTap();
       hide(els.nextButton);
       els.nextButton.classList.remove("is-success");
-      els.nextButton.querySelector("img").src = "assets/nextButton.png";
+      els.nextButton.querySelector("img").src = "assets/nextButton.webp";
       var action = state.nextAction;
       state.nextAction = null;
       if (typeof action === "function") {
@@ -8298,8 +8418,8 @@
        evict the decoded bitmap before it's used. Two concrete glitches this
        removes:
          • Tutorial background flash — `setupTutorial` swaps `sceneBg.src` to
-           BgForTutorial.png; if it isn't decoded the previously-decoded
-           Mainbg.png paints for a frame. Pre-decoding makes the swap hot.
+           BgForTutorial.webp; if it isn't decoded the previously-decoded
+           Mainbg.webp paints for a frame. Pre-decoding makes the swap hot.
        Safe: pure cache warming, no DOM/visual/logic change. */
     var _assetCache = {};
     function preloadAsset(src) {
@@ -8321,18 +8441,18 @@
     }
     (function preloadCriticalAssets() {
       [
-        "Mainbg.png", "BgForTutorial.png",
-        "GameStartScreen.png", "LetsPlayBg.png",
-        "instructionPannel.png", "Ira.png",
-        "LaserMachineWithoutLines.png", "LaserMachine.svg", "Beam.svg",
-        "Laser.png", "laserlight.png",
-        "LeftButton.png", "RightButton.png", "CutButton.png",
-        "LeftButtonClicked.png", "RightButtonClicked.png", "ClickedCutButton.png",
-        "TappedCutButton.png",
-        "InstruictionTutorialLeft.png", "InstructionTutorialRight.png",
-        "InstructionTutorialCutButton.png",
-        "nextButton.png", "NextButton2.png", "TryAgainButton.png",
-        "LetsGoButton.png", "PlayButton.png", "LabGate.webp"
+        "Mainbg.webp", "BgForTutorial.webp",
+        "GameStartScreen.webp", "LetsPlayBg.webp",
+        "instructionPannel.webp", "Ira.webp",
+        "LaserMachineWithoutLines.webp", "LaserMachine.svg", "Beam.svg",
+        "Laser.webp", "laserlight.webp",
+        "LeftButton.webp", "RightButton.webp", "CutButton.webp",
+        "LeftButtonClicked.webp", "RightButtonClicked.webp", "ClickedCutButton.webp",
+        "TappedCutButton.webp",
+        "InstruictionTutorialLeft.webp", "InstructionTutorialRight.webp",
+        "InstructionTutorialCutButton.webp",
+        "nextButton.webp", "NextButton2.webp", "TryAgainButton.webp",
+        "LetsGoButton.webp", "PlayButton.webp", "LabGate.webp"
       ].forEach(function (name) { preloadAsset(ASSETS + name); });
     })();
 
@@ -8438,7 +8558,7 @@
       </filter>
     </defs>
   </svg>
-<script src="debug-jump.js"></script>
-<script src="debug-fit.js"></script>
+<!-- <script src="debug-jump.js"></script>
+<script src="debug-fit.js"></script> -->
 </body>
 </html>

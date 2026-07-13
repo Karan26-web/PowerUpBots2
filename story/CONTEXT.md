@@ -20,27 +20,27 @@ story/
 ├── index.html          ← ONLY file to edit
 ├── CONTEXT.md          ← this file
 └── assets/
-    ├── Mainbg.png                     ← background
-    ├── CircleBlock.png                ← circle energy block
-    ├── RectangleBlock.png             ← rectangle energy block
-    ├── LaserMachine.png               ← machine ring with guide lines (tutorial only)
-    ├── LaserMachineWithoutLines.png   ← machine ring base (always visible)
-    ├── Laser.png                      ← rotating laser sprite (258×172 source)
+    ├── Mainbg.webp                     ← background
+    ├── CircleBlock.webp                ← circle energy block
+    ├── RectangleBlock.webp             ← rectangle energy block
+    ├── LaserMachine.webp               ← machine ring with guide lines (tutorial only)
+    ├── LaserMachineWithoutLines.webp   ← machine ring base (always visible)
+    ├── Laser.webp                      ← rotating laser sprite (258×172 source)
     ├── Beam.svg                       ← laser beam (fired on CUT only)
-    ├── laserlight.png                 ← glow effect
-    ├── SemiCircleHollowleft.png       ← circle round left pod
-    ├── SemiCircleHollowright.png      ← circle round right pod
-    ├── SquareHollow.png               ← rectangle round pods (both sides)
-    ├── TriangularHollowLeft.png       ← triangle/square round left pod
-    ├── TriangularHollowRight.png      ← triangle/square round right pod
-    ├── TeachingScreen.png             ← frame for teaching panels
-    ├── TutorialAfterScreen.png        ← "Let's Play" button image
-    ├── SquareBotSadState.png          ← rectangle round sad bot
-    ├── happyPinkBot.png               ← rectangle round happy bot
-    ├── CircleBot.png                  ← circle round sad bot
-    ├── HappyCircleBot.png             ← circle round happy bot
-    ├── SquareBOt.png                  ← square/triangle round sad bot
-    ├── HappyTriangleBot.png           ← square/triangle round happy bot
+    ├── laserlight.webp                 ← glow effect
+    ├── SemiCircleHollowleft.webp       ← circle round left pod
+    ├── SemiCircleHollowright.webp      ← circle round right pod
+    ├── SquareHollow.webp               ← rectangle round pods (both sides)
+    ├── TriangularHollowLeft.webp       ← triangle/square round left pod
+    ├── TriangularHollowRight.webp      ← triangle/square round right pod
+    ├── TeachingScreen.webp             ← frame for teaching panels
+    ├── TutorialAfterScreen.webp        ← "Let's Play" button image
+    ├── SquareBotSadState.webp          ← rectangle round sad bot
+    ├── happyPinkBot.webp               ← rectangle round happy bot
+    ├── CircleBot.webp                  ← circle round sad bot
+    ├── HappyCircleBot.webp             ← circle round happy bot
+    ├── SquareBOt.webp                  ← square/triangle round sad bot
+    ├── HappyTriangleBot.webp           ← square/triangle round happy bot
     └── (UI buttons, bubbles, etc.)
 ```
 
@@ -52,9 +52,9 @@ story/
 
 | # | Name | Block | Cut | Target Angle | Left Pod | Right Pod |
 |---|------|-------|-----|-------------|----------|-----------|
-| 0 | rectangle | RectangleBlock.png 220×110 | vertical | 90° or 270° | SquareHollow | SquareHollow |
+| 0 | rectangle | RectangleBlock.webp 220×110 | vertical | 90° or 270° | SquareHollow | SquareHollow |
 | 1 | square | CSS div 155×155 (purple #9B5FD9) | diagonal | 45° or 225° | TriangularHollowLeft | TriangularHollowRight |
-| 2 | circle | CircleBlock.png 220×220 | horizontal | 0° or 180° | SemiCircleHollowleft | SemiCircleHollowright |
+| 2 | circle | CircleBlock.webp 220×220 | horizontal | 0° or 180° | SemiCircleHollowleft | SemiCircleHollowright |
 
 ### FLOW (per round, defined in `FLOW` array ~line 1045)
 
@@ -67,7 +67,7 @@ intro → plug → plugReady → moveOut → whole → needs → halves → tuto
 ### Scene Descriptions
 
 - **intro / plug / plugReady / moveOut / whole / needs / halves**: Narration scenes with bot layout and shape display. Auto-advance via `duration` timer.
-- **tutorial**: Guided laser demo with bubbles. Shows LaserMachine.png overlay (guide lines). Only round 0.
+- **tutorial**: Guided laser demo with bubbles. Shows LaserMachine.webp overlay (guide lines). Only round 0.
 - **laser**: Interactive gameplay — user moves laser and taps CUT. No instruction panel and no guide line overlay.
 
 ---
@@ -77,7 +77,7 @@ intro → plug → plugReady → moveOut → whole → needs → halves → tuto
 ### Machine / Laser System (~lines 1819–2076)
 
 - Ring diameter: `--ring-size` CSS var (500px default)
-- Laser.png orbits the ring at `state.angle` degrees
+- Laser.webp orbits the ring at `state.angle` degrees
 - Right button: rotate -45°, Left button: rotate +45°
 - CUT button: fires beam, checks if `state.angle` is within ±8° of `targetAngle` (or `targetAngle2`)
 - Correct → `showSuccess()`, Wrong → `showFail()`
@@ -127,7 +127,7 @@ Both labels (big and equal) share the SAME styling. Only the block shape changes
 ## Attempt Tracking & Hint System
 
 - **1st attempt wrong**: No alignment lines shown
-- **2nd attempt wrong**: Alignment lines (LaserMachine.png overlay) revealed
+- **2nd attempt wrong**: Alignment lines (LaserMachine.webp overlay) revealed
 - **3rd attempt wrong**: Correct alignment line highlighted
 
 *(Implemented via `state.attempts` counter — check current implementation)*

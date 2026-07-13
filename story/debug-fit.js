@@ -148,7 +148,14 @@
     }
 
     function fillFor(side) { return side === "R" ? els.rightFill : els.leftFill; }
-    function pieceSlotIndex(side) { return side === "R" ? 1 : 0; }
+    function pieceSlotIndex(side) {
+      // Map slot → piece through the game's own mapping. Circle and square
+      // rounds SWAP pieces across slots (left slot seats piece 1, right seats
+      // piece 0); passing the raw slot index here inverted the semicircles on
+      // every refill after a scale/resize, while the initial seat (which used
+      // pieceIndexForSlot correctly) looked fine.
+      return window.pieceIndexForSlot(ROUNDS[state.round], side === "R" ? 1 : 0);
+    }
     function sideKey(side) { return side === "R" ? "right" : "left"; }
 
     // Snapshot the seated fill position so every later move is computed as a
