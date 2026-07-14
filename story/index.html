@@ -3093,34 +3093,64 @@
     .tutorial-bubble {
       position: absolute;
       z-index: 31;
-      object-fit: contain;
       filter: drop-shadow(0 8px 12px rgba(44, 92, 139, .22));
       transition: opacity .3s ease, transform .3s ease;
       pointer-events: none;
     }
 
-    /* bubbles below left/right buttons; cut bubble above cut button.
-       Sized ~20% down from the originals (270/280px) for visual balance;
-       anchors nudged so each tail still points at its button. */
+    .tutorial-bubble img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    /* Live label over the panel box (the SVG art carries no text). Fredoka
+       semibold at the regular 26px in-game text size, same ink blue as
+       #instructionText. The inset matches each SVG's box region so the text
+       centres inside the rounded rectangle, not the whole canvas. */
+    .tutorial-bubble-label {
+      position: absolute;
+      inset: 31.5% 2% 2.5% 2%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Fredoka', 'Arial Rounded MT Bold', sans-serif;
+      font-size: 26px;
+      font-weight: 600;
+      color: #154aa5;
+      white-space: nowrap;
+    }
+
+    /* Tap panels below the left/right buttons: both SVGs share the same
+       normalized geometry (473×224 canvas, 465×150 box, 90×74 hand icon);
+       leftpanel's hand sits right-of-centre (x249), TapPanel's left-of-centre
+       (x119). At equal widths the boxes render the same size. left/right
+       chosen so each hand icon's centre lines up with its button's centre
+       (btnLeft centre x=106; btnRight centre 106 from the right stage edge). */
     #bubbleLeft {
       width: 215px;
-      left: -43px;
+      left: -28px;
       top: 402px
     }
 
     #bubbleRight {
       width: 215px;
-      right: -43px;
+      right: -35px;
       top: 402px
     }
 
-    /* Sits flush to the right of the Cut button (Cut spans x:382-518 in the machine stage);
-       the bubble's tail is on its left edge so it points back at the button.
-       Top chosen so the tail tip lines up with the button's vertical centre. */
+    /* Sits flush to the right of the Cut button; the panel's icon is on its
+       left edge, pointing back at the button. 225px width renders the box at
+       the same height as the tap panels (68px); top aligns the icon's centre
+       with the button's vertical centre (~y655). */
     #bubbleCut {
       width: 225px;
       left: 545px;
-      top: 608px
+      top: 618px
+    }
+
+    #bubbleCut .tutorial-bubble-label {
+      inset: 4% 2.5% 4% 14%;
     }
 
     .tutorial-bubble.fade {
@@ -3704,10 +3734,21 @@
         <img id="laserBurst" src="assets/laserlight.webp" alt="">
         <div id="cutLine"></div>
         <div id="wrongSlash"></div>
-        <!-- Tutorial instruction bubbles (below left/right buttons; above cut button) -->
-        <img id="bubbleLeft" class="tutorial-bubble" src="assets/InstruictionTutorialLeft.webp" alt="">
-        <img id="bubbleRight" class="tutorial-bubble" src="assets/InstructionTutorialRight.webp" alt="">
-        <img id="bubbleCut" class="tutorial-bubble" src="assets/InstructionTutorialCutButton.webp" alt="">
+        <!-- Tutorial instruction panels (below left/right buttons; beside cut button).
+             The SVG art is text-free; the label is live text so it always renders
+             in the game font at the regular in-game size. -->
+        <div id="bubbleLeft" class="tutorial-bubble">
+          <img src="assets/leftpanel.svg" alt="">
+          <span class="tutorial-bubble-label">Tap to move</span>
+        </div>
+        <div id="bubbleRight" class="tutorial-bubble">
+          <img src="assets/TapPanel.svg" alt="">
+          <span class="tutorial-bubble-label">Tap to move</span>
+        </div>
+        <div id="bubbleCut" class="tutorial-bubble">
+          <img src="assets/cutPanel.svg" alt="">
+          <span class="tutorial-bubble-label">Tap to cut</span>
+        </div>
         <!-- Visible button images (src swaps on press) -->
         <img id="btnLeft" src="assets/LeftButton.webp" alt="" aria-hidden="true">
         <img id="btnRight" src="assets/RightButton.webp" alt="" aria-hidden="true">
@@ -8560,8 +8601,7 @@
         "LeftButton.webp", "RightButton.webp", "CutButton.webp",
         "LeftButtonClicked.webp", "RightButtonClicked.webp", "ClickedCutButton.webp",
         "TappedCutButton.webp",
-        "InstruictionTutorialLeft.webp", "InstructionTutorialRight.webp",
-        "InstructionTutorialCutButton.webp",
+        "TapPanel.svg", "leftpanel.svg", "cutPanel.svg",
         "nextButton.webp", "NextButton2.webp", "TryAgainButton.webp",
         "LetsGoButton.webp", "PlayButton.webp", "playbtn.webp", "LabGate.webp"
       ].forEach(function (name) { preloadAsset(ASSETS + name); });
