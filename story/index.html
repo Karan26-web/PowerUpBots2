@@ -444,7 +444,10 @@
     }
 
     .pod-seq-cable {
-      clip-path: inset(32% 0 0 0 round 12px);
+      /* Top inset overlaps the hollow layer's visible band (which ends at
+         31.5%) — both layers are the same image at the same geometry, so the
+         overlap renders pixel-identical and the plug/wire seam never shows. */
+      clip-path: inset(30% 0 0 0);
       animation: podCableDescend .78s cubic-bezier(.2, .92, .24, 1) .46s both;
     }
 
@@ -494,10 +497,16 @@
       }
     }
 
+    /* Reveal the wire downward from under the plug instead of translating a
+       rigid clipped band — a moving band detaches from the hollow plug and
+       only lines up on the final frame. Animating the bottom inset keeps the
+       wire's top edge glued to the plug while its tip descends to the bot.
+       No transform here, so the layer keeps its inline transform (incl. the
+       scaleX(-1) flip some rounds set on the pod). */
     @keyframes podCableDescend {
       0% {
         opacity: 0;
-        transform: translateX(-50%) translateY(-96px) scale(.997);
+        clip-path: inset(30% 0 70% 0);
         filter: brightness(.96);
       }
 
@@ -512,17 +521,13 @@
 
       80% {
         opacity: 1;
-        transform: translateX(-50%) translateY(1px) scale(1.003);
+        clip-path: inset(30% 0 0 0);
         filter: brightness(1.12) drop-shadow(0 0 9px rgba(116, 219, 255, .42));
-      }
-
-      90% {
-        transform: translateX(-50%) translateY(-.5px) scale(.999);
       }
 
       100% {
         opacity: 1;
-        transform: translateX(-50%) translateY(0) scale(1);
+        clip-path: inset(30% 0 0 0);
         filter: brightness(1);
       }
     }
@@ -1171,9 +1176,9 @@
       border-radius: 26px;
       background:
         radial-gradient(ellipse at 50% 50%,
-          rgba(255, 246, 118, .24) 0%,
-          rgba(255, 220, 42, .14) 46%,
-          rgba(255, 220, 42, 0) 72%);
+          rgba(255, 213, 156, .26) 0%,
+          rgba(255, 187, 110, .14) 46%,
+          rgba(255, 187, 110, 0) 72%);
       filter: blur(1px);
       animation: equalCueHalo 1.6s ease-in-out infinite;
       pointer-events: none;
@@ -1700,13 +1705,14 @@
     /* ── Teaching shape styles ── */
     @keyframes teachGlowPulse {
 
+      /* Warm breathe — noticeable but without the old 1.3× shiny spike. */
       0%,
       100% {
-        filter: url(#alpha-glow-teach) brightness(1) saturate(1.1);
+        filter: url(#alpha-glow-teach) brightness(1.02) saturate(1.06);
       }
 
       50% {
-        filter: url(#alpha-glow-teach) brightness(1.3) saturate(1.3);
+        filter: url(#alpha-glow-teach) brightness(1.18) saturate(1.16);
       }
     }
 
@@ -1792,7 +1798,7 @@
     }
 
     .static-glow {
-      filter: url(#alpha-glow-teach) brightness(1.15) saturate(1.15) !important;
+      filter: url(#alpha-glow-teach) brightness(1.08) saturate(1.08) !important;
     }
 
     .teach-horizontal-wrap {
@@ -2002,7 +2008,7 @@
       position: absolute;
       right: 56px;
       bottom: 68px;
-      width: 200px;
+      width: 150px;
       height: auto;
       border: none;
       padding: 0;
@@ -2063,31 +2069,35 @@
     }
 
     #playStage.start-mode #playButton {
-      left: 0;
-      right: 0;
-      margin-inline: auto;
-      top: 480px;
+      /* Directly below the "POWER UP BOTS!" logo baked into the start
+         background (logo bottom ≈ y410). Centred on the TITLE TEXT's axis
+         (≈ x680 — the bolt icon skews the logo art right of stage centre),
+         not the stage centre, so it reads centre-aligned with the title. */
+      left: 590px;
+      right: auto;
+      margin-inline: 0;
+      top: 428px;
       bottom: auto;
+      width: 120px;
     }
 
     #playStage.preplay-mode #playButton {
       /* Sits just right of the podium (art edge ≈ x627) so Ira's point lands
-         on it — well inside the cam-push window (x 103→1088). */
-      left: 650px;
+         on it — well inside the cam-push window (x 103→1088). left/top keep
+         the same centre as the previous 140px sizing. */
+      left: 684px;
       right: auto;
-      top: 312px;
+      top: 346px;
       bottom: auto;
-      width: 180px;
+      width: 112px;
       height: auto;
-      filter: drop-shadow(0 0 18px rgba(255, 167, 38, .78)) drop-shadow(0 0 18px rgba(77, 202, 255, .42));
+      /* No glow on the pre-LBD screen — just a soft grounding shadow. */
+      filter: drop-shadow(0 8px 14px rgba(31, 71, 139, .28));
       transform-origin: center center;
     }
 
     #playStage.preplay-mode #playButton::before {
-      inset: -16px -22px;
-      border-radius: 36px;
-      background: radial-gradient(ellipse, rgba(255, 210, 48, .44) 0 18%, rgba(255, 149, 0, .28) 42%, rgba(77, 202, 255, .12) 64%, transparent 80%);
-      filter: blur(13px);
+      display: none;
     }
 
     #playStage.preplay-mode #playButton::after {
@@ -2096,9 +2106,48 @@
       background: radial-gradient(ellipse, rgba(255, 255, 255, .48) 0 12%, transparent 62%);
     }
 
+    /* Pre-LBD: keep the inviting breathe, but no glow pulse (playButtonGlow
+       animates big drop-shadow halos — that's the glow being removed). */
+    #playStage.preplay-mode #playButton.play-ready {
+      animation: playButtonBreathe 1.7s ease-in-out infinite;
+    }
+
     #playStage.preplay-mode #playButton.play-ready:hover {
+      animation: none;
       transform: scale(1.1) translateY(-6px);
-      filter: drop-shadow(0 0 42px rgba(255, 180, 30, 1)) drop-shadow(0 0 20px rgba(255, 255, 255, .86)) drop-shadow(0 0 14px rgba(77, 202, 255, .66));
+      filter: drop-shadow(0 10px 16px rgba(31, 71, 139, .34));
+    }
+
+    /* Title screen: no glow behind the button — hide the yellow aura and
+       swap the glow drop-shadows for a soft grounding shadow. The breathe
+       stays; the playButtonGlow pulse and glow hover/active filters don't. */
+    #playStage.start-mode #playButton {
+      filter: drop-shadow(0 8px 14px rgba(31, 71, 139, .28));
+    }
+
+    #playStage.start-mode #playButton::before {
+      display: none;
+    }
+
+    #playStage.start-mode #playButton.play-ready {
+      animation: playButtonBreathe 1.7s ease-in-out infinite;
+    }
+
+    #playStage.start-mode #playButton.play-ready:hover {
+      animation: none;
+      transform: scale(1.08) translateY(-6px);
+      filter: drop-shadow(0 10px 16px rgba(31, 71, 139, .34));
+    }
+
+    #playStage.start-mode #playButton.play-ready:active,
+    #playStage.start-mode #playButton.play-clicked {
+      animation: none;
+      transform: scale(0.93) translateY(3px);
+      filter: drop-shadow(0 6px 10px rgba(31, 71, 139, .3));
+    }
+
+    #playStage.start-mode #playButton.play-clicked {
+      animation: playButtonClickPop .2s ease-out both;
     }
 
     #playButton.play-ready {
@@ -2337,20 +2386,6 @@
       100% {
         opacity: 0;
         transform: scale(1.012);
-      }
-    }
-
-    @keyframes playHaloGlow {
-
-      0%,
-      100% {
-        transform: scale(1);
-        opacity: .65;
-      }
-
-      50% {
-        transform: scale(1.2);
-        opacity: 1;
       }
     }
 
@@ -3064,16 +3099,18 @@
       pointer-events: none;
     }
 
-    /* bubbles below left/right buttons; cut bubble above cut button */
+    /* bubbles below left/right buttons; cut bubble above cut button.
+       Sized ~20% down from the originals (270/280px) for visual balance;
+       anchors nudged so each tail still points at its button. */
     #bubbleLeft {
-      width: 270px;
-      left: -70px;
+      width: 215px;
+      left: -43px;
       top: 402px
     }
 
     #bubbleRight {
-      width: 270px;
-      right: -70px;
+      width: 215px;
+      right: -43px;
       top: 402px
     }
 
@@ -3081,9 +3118,9 @@
        the bubble's tail is on its left edge so it points back at the button.
        Top chosen so the tail tip lines up with the button's vertical centre. */
     #bubbleCut {
-      width: 280px;
+      width: 225px;
       left: 545px;
-      top: 595px
+      top: 608px
     }
 
     .tutorial-bubble.fade {
@@ -3399,6 +3436,12 @@
       pointer-events: none;
     }
 
+    /* Per-round success burst: same confetti, overlaid on the live game
+       (above scene content, below the gate transition at z-120). */
+    .success-confetti {
+      z-index: 60;
+    }
+
     .complete-confetti span {
       position: absolute;
       left: var(--x);
@@ -3640,7 +3683,7 @@
         <div id="iraGlowRing" aria-hidden="true"></div>
         <video id="iraChar" src="assets/IraVid1.webm" muted playsinline preload="auto" aria-hidden="true"></video>
         <button id="playButton" type="button" aria-label="Let's go">
-          <img id="playButtonImg" src="assets/PlayButton.webp" alt="Play">
+          <img id="playButtonImg" src="assets/playbtn.webp" alt="Play">
         </button>
       </section>
 
@@ -3756,11 +3799,17 @@
     var TIMING = {
       SHORT_SCREEN: 3800,
       LONG_SCREEN: 5400,
+      /* Concept screens (whole → needs → halves) run slower than the generic
+         short/long screens: lower-grade learners need the VO plus a few quiet
+         seconds to absorb each idea. VO lengths: whole 3.3s, needs 3.8s,
+         halves 5.1s (two chained clips) + the split-cue demo. */
+      WHOLE_SCREEN: 6500,
+      NEEDS_SCREEN: 7800,
       PREPLAY_SCREEN: 4000,
       PLUG_SCREEN: 3100,
       READY_TEXT_SCREEN: 3300,
       MOVE_SCREEN: 1500,
-      HALVES_DEMO_SCREEN: 12500,
+      HALVES_DEMO_SCREEN: 16000,
       TEACH_WHOLE_IN: 150,
       TEACH_LABEL_IN: 850,
       TEACH_MOVE_DOWN: 1900,
@@ -4180,6 +4229,18 @@
         }
       } catch (e) { }
     }
+    var _clapAudio = null;
+    function sndClap() {
+      try {
+        if (!_clapAudio) {
+          _clapAudio = new Audio("audios/clapSound.ogg");
+          _clapAudio.preload = "auto";
+        }
+        _clapAudio.currentTime = 0;
+        var p = _clapAudio.play();
+        if (p && typeof p.catch === "function") { p.catch(function () {}); }
+      } catch (e) {}
+    }
     var _confettiAudio = null;
     function sndConfetti() {
       try {
@@ -4414,7 +4475,11 @@
         label: "Rectangle",
         variant: "rectangle-vertical",
         blockSrc: ASSETS + "RectangleBlock.webp",
-        blockW: 200,
+        /* 174×200 (not square): each vertical half is then 87×200 — the exact
+           width:height ratio of the tall hollow slots (74×170 = 0.435), so the
+           cut halves visibly "belong" in the slots and seat with a uniform
+           scale (no stretch correction needed). */
+        blockW: 174,
         blockH: 200,
         cut: "vertical",
         startAngle: 45,
@@ -4443,7 +4508,10 @@
         slotXOffset: { left: 0, right: 0 },
         slotOverflow: "hidden",
         visualFitScale: 1,
-        fitPieceScale: { left: { x: 0.99, y: 1.14 }, right: { x: 0.99, y: 1.14 } },
+        /* Halves now share the slot's exact aspect ratio (see blockW note), so
+           they seat 1:1 — the old {0.99, 1.14} stretch compensated the former
+           square block's proportion mismatch. */
+        fitPieceScale: { left: { x: 1.0, y: 1.0 }, right: { x: 1.0, y: 1.0 } },
         hollowFocusFromSlot: true,
         previewFitScale: 0.92,
         happyBotAspect: 838 / 620,
@@ -4597,8 +4665,8 @@
       { scene: "plug", duration: TIMING.PLUG_SCREEN },
       { scene: "plugReady", text: "The bots are ready to get charged.", duration: TIMING.READY_TEXT_SCREEN },
       { scene: "moveOut", duration: TIMING.MOVE_SCREEN },
-      { scene: "whole", text: "Here is one whole energy block.", duration: TIMING.SHORT_SCREEN },
-      { scene: "needs", text: "Each bot needs a part of the energy block.", duration: TIMING.LONG_SCREEN },
+      { scene: "whole", text: "Here is one whole energy block.", duration: TIMING.WHOLE_SCREEN },
+      { scene: "needs", text: "Each bot needs a part of the energy block.", duration: TIMING.NEEDS_SCREEN },
       { scene: "halves", text: "So, we need to cut the block into two equal parts.", duration: TIMING.HALVES_DEMO_SCREEN },
       { scene: "laserIntro", text: "Use the laser to cut the block.", duration: TIMING.SHORT_SCREEN },
       { scene: "tutorial" },
@@ -4866,6 +4934,9 @@
         el.style.bottom = "";
         el.style.marginLeft = "";
         el.classList.remove("happy");
+      });
+      Array.prototype.slice.call(els.game.querySelectorAll(".success-confetti")).forEach(function (node) {
+        if (node.parentNode) { node.parentNode.removeChild(node); }
       });
       hide(els.shapeStage);
       hide(els.teachStage);
@@ -6009,6 +6080,11 @@
         if (glow) block.classList.add("static-glow");
         block.classList.add("block-pop-in");
         wrap.appendChild(block);
+        els.shapeStage.appendChild(wrap);
+        show(els.shapeStage);
+        /* Callers that want the highlight tied to their dialogue pass
+           glow=false and add "static-glow" to this block when the VO starts. */
+        return block;
       }
 
       els.shapeStage.appendChild(wrap);
@@ -6488,14 +6564,6 @@
       if (!els.playFx) { return; }
       els.playFx.innerHTML = "";
 
-      /* Ambient glow halo behind play button */
-      var halo = document.createElement("div");
-      halo.style.cssText = "position:absolute;right:254px;bottom:55px;width:260px;height:150px;" +
-        "border-radius:50%;background:radial-gradient(ellipse,rgba(255,165,40,.22) 0%," +
-        "rgba(77,202,255,.12) 55%,transparent 80%);animation:playHaloGlow 1.7s ease-in-out infinite;" +
-        "pointer-events:none;z-index:2;";
-      els.playFx.appendChild(halo);
-
       /* Floating sparkle particles */
       for (var i = 0; i < 44; i++) {
         var particle = document.createElement("span");
@@ -6546,9 +6614,12 @@
       els.sceneBg.style.display = "block";
       setupBots("layout-ready");
       setInstruction("");
-      renderWhole(true);
+      /* Block appears plain first; the warm highlight switches on together
+         with the "Here is one whole energy block." dialogue, not before. */
+      var block = renderWhole(false);
       later(function () {
         setInstruction(text);
+        if (block) { block.classList.add("static-glow"); }
       }, 680);
     }
 
@@ -6678,7 +6749,9 @@
         setInstruction("");
         setupBots("layout-clear");
         els.playBg.src = ASSETS + "GameStartScreen.webp";
-        els.playButtonImg.src = ASSETS + "PlayButton.webp";
+        /* Title screen uses the blue button variant; the purple PlayButton
+           stays on Ira's preplay screen. */
+        els.playButtonImg.src = ASSETS + "playbtn.webp";
         els.playButtonImg.alt = "Play";
         els.playButton.setAttribute("aria-label", "Play");
         els.playStage.classList.add("start-mode");
@@ -7004,12 +7077,23 @@
         els.iraChar.currentTime = 0;
         els.iraChar.play().catch(function () {});
 
+        /* Trim the run: the running clip outlasts the 3.4s glide, which left
+           Ira jogging in place at the podium. Switch to the talking clip the
+           moment the slide-in transform LANDS (transitionend); the clip's own
+           'ended' and a timer remain as fallbacks. playIraVid2AndSpeak is
+           guarded, so whichever fires first wins. */
+        function onArrive(e) {
+          if (e.propertyName && e.propertyName !== "transform") { return; }
+          els.iraChar.removeEventListener("transitionend", onArrive);
+          playIraVid2AndSpeak();
+        }
+        els.iraChar.addEventListener("transitionend", onArrive);
         function onVid1End() {
           els.iraChar.removeEventListener("ended", onVid1End);
           playIraVid2AndSpeak();
         }
         els.iraChar.addEventListener("ended", onVid1End);
-        // Fallback in case 'ended' is missed (decode hiccup / tab throttle).
+        // Fallback in case both signals are missed (decode hiccup / tab throttle).
         later(playIraVid2AndSpeak, 3800);
 
         requestAnimationFrame(function () {
@@ -8035,6 +8119,7 @@
             var tgts = slotTargetsFromFills();
             burstCelebration(tgts[0].x, tgts[0].y);
             burstCelebration(tgts[1].x, tgts[1].y);
+            celebrateSuccess();
 
             var successAudio = setInstruction(SUCCESS_CHARGED_TEXT, { playThrough: true });
             whenInstructionAudioEnds(successAudio, function () {
@@ -8296,11 +8381,11 @@
       renderStep();
     }
 
-    function renderCompleteConfetti() {
-      if (!els.completeConfetti) { return; }
+    /* House confetti recipe — shared by the (dormant) complete screen and the
+       per-round success celebration so they look identical. */
+    function spawnConfettiSpans(container, count) {
       var colors = ["#4dbeff", "#9b5fd9", "#78dc2d", "#ffcf3b", "#ff6b8b", "#56e8ff"];
-      els.completeConfetti.innerHTML = "";
-      for (var i = 0; i < 72; i++) {
+      for (var i = 0; i < count; i++) {
         var bit = document.createElement("span");
         var x = 4 + Math.random() * 92;
         var y = -18 - Math.random() * 60;
@@ -8323,8 +8408,34 @@
         bit.style.setProperty("--dur", duration.toFixed(2) + "s");
         bit.style.setProperty("--d", delay.toFixed(2) + "s");
         bit.style.setProperty("--c", colors[i % colors.length]);
-        els.completeConfetti.appendChild(bit);
+        container.appendChild(bit);
       }
+    }
+
+    function renderCompleteConfetti() {
+      if (!els.completeConfetti) { return; }
+      els.completeConfetti.innerHTML = "";
+      spawnConfettiSpans(els.completeConfetti, 72);
+    }
+
+    /* Correct-answer celebration: claps + celebratory sound + a few seconds of
+       the same falling confetti the completion screen used, overlaid on the
+       whole game. The layer fades out and removes itself; resetScene also
+       clears any stragglers on scene changes. */
+    function celebrateSuccess() {
+      sndClap();
+      sndConfetti();
+      var layer = document.createElement("div");
+      layer.className = "complete-confetti success-confetti";
+      spawnConfettiSpans(layer, 72);
+      els.game.appendChild(layer);
+      setTimeout(function () {
+        layer.style.transition = "opacity .6s ease";
+        layer.style.opacity = "0";
+        setTimeout(function () {
+          if (layer.parentNode) { layer.parentNode.removeChild(layer); }
+        }, 650);
+      }, 3600);
     }
 
     function completeGame() {
@@ -8452,8 +8563,19 @@
         "InstruictionTutorialLeft.webp", "InstructionTutorialRight.webp",
         "InstructionTutorialCutButton.webp",
         "nextButton.webp", "NextButton2.webp", "TryAgainButton.webp",
-        "LetsGoButton.webp", "PlayButton.webp", "LabGate.webp"
+        "LetsGoButton.webp", "PlayButton.webp", "playbtn.webp", "LabGate.webp"
       ].forEach(function (name) { preloadAsset(ASSETS + name); });
+    })();
+
+    /* Warm the celebration sounds so the first correct answer claps
+       immediately instead of waiting on a fetch. */
+    (function preloadCelebrationAudio() {
+      try {
+        _clapAudio = new Audio("audios/clapSound.ogg");
+        _clapAudio.preload = "auto";
+        _confettiAudio = new Audio("audios/confettiSound.ogg");
+        _confettiAudio.preload = "auto";
+      } catch (e) {}
     })();
 
     /* Warm the Ira preplay clips so the entrance plays without a load hitch. */
@@ -8496,11 +8618,13 @@
     <defs>
       <!-- Teaching Yellow Glow Shader -->
       <filter id="alpha-glow-teach" x="-20%" y="-20%" width="140%" height="140%">
-        <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="blur" />
+        <!-- Yellow halo with enough alpha presence to clearly read — slope
+             1.15 was too faded, slope 3 too shiny. -->
+        <feGaussianBlur in="SourceAlpha" stdDeviation="8" result="blur" />
         <feComponentTransfer in="blur" result="boost">
-          <feFuncA type="linear" slope="3" />
+          <feFuncA type="linear" slope="2" />
         </feComponentTransfer>
-        <feFlood flood-color="#ffff00" result="color" />
+        <feFlood flood-color="#ffe14d" result="color" />
         <feComposite in="color" in2="boost" operator="in" result="glow" />
         <feMerge>
           <feMergeNode in="glow" />
