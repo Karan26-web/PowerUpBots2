@@ -1993,7 +1993,7 @@
        spans x≈109–627 with its base at y≈711, so the origin is pinned
        left/bottom (35% 95%) to keep the podium fully in frame — the crop eats
        the empty far-right and top instead. Window ≈ [103→1088] × [158→712]:
-       podium, Ira and the Play button (x 650–830) all stay inside. */
+       podium, Ira and the Play button (x 758→870) all stay inside. */
     #playStage.preplay-mode.cam-push {
       transform-origin: 35% 95%;
       animation: playCamPush 3.8s cubic-bezier(.22, .8, .3, 1) forwards;
@@ -2082,12 +2082,13 @@
     }
 
     #playStage.preplay-mode #playButton {
-      /* Sits just right of the podium (art edge ≈ x627) so Ira's point lands
-         on it — well inside the cam-push window (x 103→1088). left/top keep
-         the same centre as the previous 140px sizing. */
-      left: 684px;
+      /* In the negative space right of the podium as seen after the cam-push
+         (visible window x 103→1088 / y 158→712, podium art edge ≈ x627),
+         nudged left/up of the geometric centre so it sits at Ira's torso
+         height: centre ≈ (814, 385). Button is 112×114. */
+      left: 758px;
       right: auto;
-      top: 346px;
+      top: 328px;
       bottom: auto;
       width: 112px;
       height: auto;
