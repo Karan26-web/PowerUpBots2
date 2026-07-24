@@ -153,6 +153,9 @@ Pod and fill sizes (from `setupTargetSlots`, ~line 1235):
 
 ## Known Design Decisions
 
+- **Angle convention is screen-space (y down)**: laser at `state.angle` sits at `(cos, sin)·r` from ring center, so **45° = "\" (backslash)** and **135° = "/" (slash)** on screen. `cutOrientation()` and the `<line>` order in LaserMachine.svg ([0] vertical, [1] horizontal, [2] "/", [3] "\") must stay consistent with this. A 2026-07-24 fix corrected `machineSvgLineIndexForAngle` which had the two diagonals swapped (hint highlighted the mirror line).
+- **Square round slash cuts spin, never mirror (2026-07-24)**: the round accepts both diagonals but the triangular hollows are backslash-family art. A slash (135°/315°) cut used to snap to mirrored backslash pieces on the result split screen ("cut at / shown as \"). Now `showSuccess` passes `spinAngle` for square+slash: all pre-fit screens show the player's REAL diagonal and `flyHalvesToSlots` rotates the pieces 90° in flight onto the hollow shapes (same mechanism as wide-hcut's vertical→horizontal spin). `fitAngleForRound` still normalises the SEATED fill to 45°.
+
 - **Square block uses CSS, not PNG**: `r.blockSrc = ""` — rendered as `div.css-square { background: #9B5FD9 }`. Color changed from original pink (#d23d62) to purple (#9B5FD9).
 - **Circle borderRadius on inner cut piece = "0"**: Explicitly cleared in `makeCutPiece` to prevent white-line artifact at the horizontal cut boundary when two semicircles are displayed adjacent.
 - **Horizontal split gap fix**: In `splitMachineBlock`, h0 gets `marginBottom: "-1px"` for horizontal (circle) cuts to close the 1px rendering gap between stacked semicircles.

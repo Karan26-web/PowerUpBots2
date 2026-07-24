@@ -39,12 +39,24 @@
       transform-origin: top left;
       font-family: "Trebuchet MS", "Arial Rounded MT Bold", Arial, sans-serif;
       color: #154aa5;
+      -webkit-user-select: none;
       user-select: none;
+      -webkit-touch-callout: none;
       background: #d9e7ff;
       isolation: isolate;
       --ease-in-out-soft: cubic-bezier(.65, 0, .35, 1);
       --ease-out-back: cubic-bezier(.18, .89, .32, 1.18);
       --ease-snap: cubic-bezier(.16, 1.18, .3, 1);
+    }
+
+    /* Game art must never be draggable out of the page (e.g. into a new tab).
+       -webkit-user-drag covers Chrome/Safari/Brave; the document-level
+       dragstart preventDefault in the script covers Firefox and anything
+       CSS misses. */
+    img,
+    svg,
+    svg image {
+      -webkit-user-drag: none;
     }
 
     /* Screen transition fade overlay removed; it caused a visible white flash. */
@@ -3834,6 +3846,14 @@
 
       window.addEventListener("resize", resize);
       resize();
+
+      /* Kill native HTML5 dragging everywhere — without this, game art
+         (<img> bots, laser, pods, buttons) can be dragged out of the page
+         into a new tab. Cross-browser companion to the -webkit-user-drag
+         CSS rule; covers Firefox and dynamically created elements. */
+      document.addEventListener("dragstart", function (e) {
+        e.preventDefault();
+      });
     })();
 
     var ASSETS = "assets/";
@@ -4828,14 +4848,18 @@
     }
 
     /* Map a target angle (deg, 0..360) to the index of the corresponding <line>
-       in LaserMachine.svg: vertical, horizontal, slash-up, backslash-down. */
+       in LaserMachine.svg. SVG line order: [0] vertical, [1] horizontal,
+       [2] "/" (bottom-left to top-right), [3] "\" (top-left to bottom-right).
+       Screen coordinates have y pointing DOWN, so the laser at 45° sits at the
+       ring's bottom-right and its cut line runs "\" (backslash) — matching
+       cutOrientation(45) === "backslash". 135° runs "/" (slash). */
     function machineSvgLineIndexForAngle(deg) {
       var snap = Math.round(((deg % 180) + 180) % 180 / 45) * 45;
       if (snap === 180) snap = 0;
       if (snap === 0) return 1;   // horizontal
       if (snap === 90) return 0;  // vertical
-      if (snap === 45) return 2;  // slash (/)
-      if (snap === 135) return 3; // backslash (\)
+      if (snap === 45) return 3;  // backslash (\) — 45° cut line on screen
+      if (snap === 135) return 2; // slash (/) — 135° cut line on screen
       return -1;
     }
 
@@ -7449,9 +7473,11 @@
        The triangle (square) round accepts both diagonals, but its triangular
        hollows are shaped for the backslash (45°) family. A slash (135°/315°)
        cut produces the mirror-image triangles, so normalise it to the 45°
-       family here — the pieces then reuse the known-good backslash fit and
-       drop straight into the same hollows ("moving cross way"). The machine
-       split and teaching screens still show the player's real diagonal. */
+       family here for the SEATED fill only. Every pre-fit visual (machine
+       split, teaching screens, result split screen) shows the player's real
+       diagonal, and the flight spins the pieces 90° into the hollows
+       (spinAngle in showSuccess) — a slash triangle rotated 90° IS the
+       matching backslash triangle, so nothing ever appears mirrored. */
     function fitAngleForRound(r, angle) {
       if (r.name === "square" && cutOrientation(angle) === "slash") {
         return 45;
@@ -7470,15 +7496,6 @@
         return 0;
       }
       return angle;
-    }
-
-    function wrongPieceClip(angle, index) {
-      var normalized = ((angle % 360) + 360) % 360;
-      var diagonalDown = (normalized > 90 && normalized < 270);
-      if (diagonalDown) {
-        return index === 0 ? "polygon(0 0,100% 0,100% 100%)" : "polygon(0 0,0 100%,100% 100%)";
-      }
-      return index === 0 ? "polygon(0 0,100% 0,0 100%)" : "polygon(100% 0,100% 100%,0 100%)";
     }
 
     function machineCenterInGame() {
@@ -8079,7 +8096,9 @@
            the scale acts in the piece's ROTATED local frame — swap the axes
            (scale(flySy, flySx)) to land at the exact on-screen extents that
            fillSlotWithPiece settles at. +90° maps each vertical half's rounded
-           outer edge onto the correct top/bottom side of the wide hollow. */
+           outer edge onto the correct top/bottom side of the wide hollow, and
+           each slash-cut triangle (square round) onto the backslash shape its
+           triangular hollow expects. */
         var finalTransform = spin
           ? "translate(" + dx + "px," + dy + "px) rotate(90deg) scale(" + flySy + "," + flySx + ")"
           : "translate(" + dx + "px," + dy + "px) scale(" + flySx + "," + flySy + ")";
@@ -8098,15 +8117,19 @@
       var r = currentRound();
       var cutAngle = state.lastCutAngle;
       var fitAngle = fitAngleForRound(r, cutAngle);
-      /* Vertical cut accepted on a horizontal-slot round (wide-hcut): keep the
+      /* Cut accepted on a line family the hollows aren't shaped for: keep the
          pre-fit visuals true to the player's cut — the split screen shows the
-         REAL vertical halves, and the flight spins them 90° into the wide
-         hollows. A 90° spin maps vertical halves exactly onto horizontal ones
-         (square block), rounded corners landing on the correct side. Scoped to
-         vertical→horizontal so the square round's diagonal mirroring keeps its
-         existing behavior. */
-      var spinAngle = (cutOrientation(cutAngle) === "vertical" &&
-        cutOrientation(fitAngle) === "horizontal") ? cutAngle : undefined;
+         REAL halves, and the flight spins them 90° into the hollows. A 90° spin
+         maps vertical halves exactly onto horizontal ones (wide-hcut: square
+         block, rounded corners landing on the correct side), and the square
+         round's slash-cut triangles exactly onto the backslash pair its
+         triangular hollows are shaped for — the pieces must never snap to the
+         mirrored diagonal on screen (the player cut "/", showing "\" reads as
+         the wrong cut). */
+      var spinAngle = ((cutOrientation(cutAngle) === "vertical" &&
+        cutOrientation(fitAngle) === "horizontal") ||
+        (r.name === "square" && cutOrientation(cutAngle) === "slash" &&
+          cutOrientation(fitAngle) === "backslash")) ? cutAngle : undefined;
       /* Circle cut off the horizontal family: show the REAL split, then rotate
          the pair upright before the standard horizontal flight. The circle is
          rotationally symmetric, so the rotated arrangement lands pixel-exact on
@@ -8723,7 +8746,7 @@
       </filter>
     </defs>
   </svg>
-<!-- <script src="debug-jump.js"></script>
-<script src="debug-fit.js"></script> -->
+<script src="debug-jump.js"></script>
+<script src="debug-fit.js"></script>
 </body>
 </html>
