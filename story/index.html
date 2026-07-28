@@ -3349,120 +3349,16 @@
       }
     }
 
+    /* Full-art end card: title + bots are baked into the image, so the DOM
+       only layers the falling confetti and the Next button on top. */
     #completeStage {
       position: absolute;
       inset: 0;
       z-index: 60;
       overflow: hidden;
       isolation: isolate;
-      background-color: #e6f0ff;
-      background:
-        radial-gradient(circle at 50% 40%, #ffffff 0 13%, #e5efff 35%, #c5daff 100%),
-        linear-gradient(180deg, #e6f0ff 0%, #dbeaff 100%);
+      background: #5a6fe0 url("assets/image.png") center / cover no-repeat;
       transition: opacity .35s ease;
-    }
-
-    #completeStage::before {
-      content: "";
-      position: absolute;
-      inset: -110px -180px -60px;
-      background: repeating-conic-gradient(from -10deg at 50% 32%,
-          rgba(255, 255, 255, .5) 0deg,
-          rgba(255, 255, 255, .5) 8deg,
-          rgba(170, 201, 255, .2) 8deg,
-          rgba(170, 201, 255, .2) 18deg);
-      opacity: .74;
-      z-index: 0;
-      pointer-events: none;
-    }
-
-    #completeStage::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 58px;
-      height: 31px;
-      background: rgba(86, 150, 244, .55);
-      box-shadow: 0 -1px 0 rgba(255, 255, 255, .46), 0 6px 16px rgba(77, 136, 221, .2);
-      z-index: 1;
-    }
-
-    .complete-copy {
-      position: absolute;
-      left: 50%;
-      top: 54px;
-      width: 640px;
-      transform: translateX(-50%);
-      text-align: center;
-      color: #10295d;
-      font-weight: 900;
-      z-index: 6;
-      text-shadow: 0 3px 0 rgba(255, 255, 255, .76), 0 6px 13px rgba(20, 50, 104, .16);
-    }
-
-    .complete-title {
-      font-size: 56px;
-      line-height: 1.04;
-      letter-spacing: 0;
-    }
-
-    .complete-sub {
-      margin-top: 12px;
-      font-size: 32px;
-      line-height: 1.1;
-      color: #10295d;
-    }
-
-    .complete-bots {
-      position: absolute;
-      left: 50%;
-      bottom: 80px;
-      width: 1180px;
-      height: 392px;
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      transform: translateX(-50%);
-      z-index: 3;
-    }
-
-    .complete-bot {
-      position: relative;
-      width: 180px;
-      height: 372px;
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-    }
-
-    .complete-bot-img {
-      display: block;
-      width: var(--bot-w);
-      height: auto;
-      object-fit: contain;
-      filter: drop-shadow(0 16px 20px rgba(63, 96, 151, .2)) drop-shadow(0 0 22px rgba(86, 229, 255, .56));
-      animation: completeBotBounce 1.6s ease-in-out infinite;
-    }
-
-    .complete-bot:nth-child(2) .complete-bot-img {
-      animation-delay: .14s;
-    }
-
-    .complete-bot:nth-child(3) .complete-bot-img {
-      animation-delay: .28s;
-    }
-
-    .complete-bot:nth-child(4) .complete-bot-img {
-      animation-delay: .42s;
-    }
-
-    .complete-bot:nth-child(5) .complete-bot-img {
-      animation-delay: .56s;
-    }
-
-    .complete-bot:nth-child(6) .complete-bot-img {
-      animation-delay: .7s;
     }
 
     .complete-confetti {
@@ -3491,31 +3387,6 @@
       transform: translate3d(0, -80px, 0) rotate(var(--r));
       animation: completeConfettiFall var(--dur, 3.4s) linear infinite;
       animation-delay: var(--d);
-    }
-
-    .complete-ground-shadow {
-      position: absolute;
-      left: 50%;
-      bottom: -2px;
-      width: 120px;
-      height: 18px;
-      border-radius: 50%;
-      transform: translateX(-50%);
-      background: rgba(47, 85, 144, .16);
-      filter: blur(3px);
-      z-index: -1;
-    }
-
-    @keyframes completeBotBounce {
-
-      0%,
-      100% {
-        transform: translateY(0) rotate(0)
-      }
-
-      50% {
-        transform: translateY(-10px) rotate(1.2deg)
-      }
     }
 
     @keyframes completeConfettiFall {
@@ -3767,10 +3638,7 @@
       </button>
     </section>
 
-    <section id="completeStage" class="hidden" aria-live="polite">
-      <div class="complete-copy">
-        <div class="complete-title">Bots Powered Up!</div>
-      </div>
+    <section id="completeStage" class="hidden" aria-live="polite" aria-label="Bots Powered Up!">
       <div id="completeConfetti" class="complete-confetti" aria-hidden="true">
         <span style="--x:8%;--y:17%;--c:#4dbeff;--r:24deg;--d:.1s"></span>
         <span style="--x:15%;--y:31%;--c:#9b5fd9;--r:-38deg;--d:.7s"></span>
@@ -3782,32 +3650,6 @@
         <span style="--x:69%;--y:42%;--c:#4dbeff;--r:30deg;--d:.8s"></span>
         <span style="--x:79%;--y:57%;--c:#78dc2d;--r:-31deg;--d:.5s"></span>
         <span style="--x:62%;--y:63%;--c:#68c7ff;--r:48deg;--d:1.1s"></span>
-      </div>
-      <div class="complete-bots" aria-hidden="true">
-        <div class="complete-bot">
-          <img class="complete-bot-img" style="--bot-w:152px" src="assets/happyPinkBot.webp" alt="">
-          <div class="complete-ground-shadow"></div>
-        </div>
-        <div class="complete-bot">
-          <img class="complete-bot-img" style="--bot-w:172px" src="assets/HappyTriangleBot.webp" alt="">
-          <div class="complete-ground-shadow"></div>
-        </div>
-        <div class="complete-bot">
-          <img class="complete-bot-img" style="--bot-w:152px" src="assets/HappyCircleBot.webp" alt="">
-          <div class="complete-ground-shadow"></div>
-        </div>
-        <div class="complete-bot">
-          <img class="complete-bot-img" style="--bot-w:152px" src="assets/happyPinkBot.webp" alt="">
-          <div class="complete-ground-shadow"></div>
-        </div>
-        <div class="complete-bot">
-          <img class="complete-bot-img" style="--bot-w:172px" src="assets/HappyTriangleBot.webp" alt="">
-          <div class="complete-ground-shadow"></div>
-        </div>
-        <div class="complete-bot">
-          <img class="complete-bot-img" style="--bot-w:152px" src="assets/HappyCircleBot.webp" alt="">
-          <div class="complete-ground-shadow"></div>
-        </div>
       </div>
       <button id="finishButton" type="button" aria-label="Next">
         <img src="assets/NextButton2.webp" alt="">
@@ -8622,7 +8464,8 @@
         "TappedCutButton.webp",
         "TapPanel.svg", "leftpanel.svg", "cutPanel.svg",
         "nextButton.webp", "NextButton2.webp", "TryAgainButton.webp",
-        "LetsGoButton.webp", "PlayButton.webp", "playbtn.webp", "LabGate.webp"
+        "LetsGoButton.webp", "PlayButton.webp", "playbtn.webp", "LabGate.webp",
+        "image.png"
       ].forEach(function (name) { preloadAsset(ASSETS + name); });
     })();
 
