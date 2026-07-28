@@ -3307,35 +3307,46 @@
       }
     }
 
+    /* Same green image button as the per-round success screen (#nextButton
+       .is-success), including its orange glow pulse, docked at the right
+       middle of the stage. */
     #finishButton {
       position: absolute;
-      left: 50%;
-      bottom: 22px;
-      width: 250px;
-      height: 66px;
-      transform: translateX(-50%);
+      right: 36px;
+      top: 50%;
+      width: 220px;
+      height: auto;
+      padding: 0;
+      transform: translateY(-50%);
       border: 0;
-      border-radius: 14px;
-      background: linear-gradient(180deg, #55e5ff 0%, #14b9ee 100%);
-      color: #fff;
-      font-size: 29px;
-      line-height: 1;
-      font-weight: 900;
-      letter-spacing: 0;
-      text-shadow: 0 2px 0 rgba(18, 109, 181, .36);
-      box-shadow: inset 0 -5px 0 rgba(0, 131, 210, .28), 0 4px 0 #0aa7e6;
+      background: transparent;
       z-index: 8;
       cursor: pointer;
-      transition: transform .12s ease, filter .2s ease;
+      transition: opacity .22s ease, transform .12s ease;
       -webkit-tap-highlight-color: transparent;
+      animation: finishPulse 1.6s ease-in-out infinite;
     }
 
-    #finishButton:hover {
-      filter: brightness(1.05)
+    #finishButton img {
+      display: block;
+      width: 100%;
+      height: auto;
     }
 
     #finishButton:active {
-      transform: translateX(-50%) scale(.96)
+      animation: none;
+      transform: translateY(-50%) scale(.96)
+    }
+
+    @keyframes finishPulse {
+      0%, 100% {
+        filter: drop-shadow(0 0 18px rgba(255, 167, 38, .78)) drop-shadow(0 8px 16px rgba(231, 116, 0, .42));
+        transform: translateY(-50%) scale(1);
+      }
+      50% {
+        filter: drop-shadow(0 0 28px rgba(255, 200, 80, 1)) drop-shadow(0 0 44px rgba(255, 149, 0, .62));
+        transform: translateY(-50%) scale(1.045);
+      }
     }
 
     #completeStage {
@@ -3407,7 +3418,7 @@
       position: absolute;
       left: 50%;
       bottom: 80px;
-      width: 940px;
+      width: 1180px;
       height: 392px;
       display: flex;
       align-items: flex-end;
@@ -3418,7 +3429,7 @@
 
     .complete-bot {
       position: relative;
-      width: 260px;
+      width: 180px;
       height: 372px;
       display: flex;
       align-items: flex-end;
@@ -3442,33 +3453,16 @@
       animation-delay: .28s;
     }
 
-    .complete-token {
-      position: absolute;
-      left: 50%;
-      top: 7px;
-      width: 92px;
-      height: 92px;
-      transform: translateX(-50%);
-      animation: completeTokenFloat 1.6s ease-in-out infinite;
+    .complete-bot:nth-child(4) .complete-bot-img {
+      animation-delay: .42s;
     }
 
-    .complete-token-rect {
-      top: 27px;
-      width: 126px;
-      height: 64px;
-      border-radius: 0;
-      background: #c74c67;
+    .complete-bot:nth-child(5) .complete-bot-img {
+      animation-delay: .56s;
     }
 
-    .complete-token-triangle {
-      background: #9B5FD9;
-      clip-path: polygon(0 0, 100% 0, 100% 100%);
-    }
-
-    .complete-token-circle {
-      background: #efa033;
-      clip-path: inset(0 0 50% 0);
-      border-radius: 50%;
+    .complete-bot:nth-child(6) .complete-bot-img {
+      animation-delay: .7s;
     }
 
     .complete-confetti {
@@ -3503,7 +3497,7 @@
       position: absolute;
       left: 50%;
       bottom: -2px;
-      width: 150px;
+      width: 120px;
       height: 18px;
       border-radius: 50%;
       transform: translateX(-50%);
@@ -3521,18 +3515,6 @@
 
       50% {
         transform: translateY(-10px) rotate(1.2deg)
-      }
-    }
-
-    @keyframes completeTokenFloat {
-
-      0%,
-      100% {
-        transform: translateX(-50%) translateY(0)
-      }
-
-      50% {
-        transform: translateX(-50%) translateY(-8px)
       }
     }
 
@@ -3803,23 +3785,32 @@
       </div>
       <div class="complete-bots" aria-hidden="true">
         <div class="complete-bot">
-          <div class="complete-token complete-token-rect"></div>
-          <img class="complete-bot-img" style="--bot-w:190px" src="assets/happyPinkBot.webp" alt="">
+          <img class="complete-bot-img" style="--bot-w:152px" src="assets/happyPinkBot.webp" alt="">
           <div class="complete-ground-shadow"></div>
         </div>
         <div class="complete-bot">
-          <div class="complete-token complete-token-triangle"></div>
-          <img class="complete-bot-img" style="--bot-w:216px" src="assets/HappyTriangleBot.webp" alt="">
+          <img class="complete-bot-img" style="--bot-w:172px" src="assets/HappyTriangleBot.webp" alt="">
           <div class="complete-ground-shadow"></div>
         </div>
         <div class="complete-bot">
-          <div class="complete-token complete-token-circle"></div>
-          <img class="complete-bot-img" style="--bot-w:190px" src="assets/HappyCircleBot.webp" alt="">
+          <img class="complete-bot-img" style="--bot-w:152px" src="assets/HappyCircleBot.webp" alt="">
+          <div class="complete-ground-shadow"></div>
+        </div>
+        <div class="complete-bot">
+          <img class="complete-bot-img" style="--bot-w:152px" src="assets/happyPinkBot.webp" alt="">
+          <div class="complete-ground-shadow"></div>
+        </div>
+        <div class="complete-bot">
+          <img class="complete-bot-img" style="--bot-w:172px" src="assets/HappyTriangleBot.webp" alt="">
+          <div class="complete-ground-shadow"></div>
+        </div>
+        <div class="complete-bot">
+          <img class="complete-bot-img" style="--bot-w:152px" src="assets/HappyCircleBot.webp" alt="">
           <div class="complete-ground-shadow"></div>
         </div>
       </div>
       <button id="finishButton" type="button" aria-label="Next">
-        Next
+        <img src="assets/NextButton2.webp" alt="">
       </button>
     </section>
 
@@ -8446,7 +8437,7 @@
       renderStep();
     }
 
-    /* House confetti recipe — shared by the (dormant) complete screen and the
+    /* House confetti recipe — shared by the complete screen and the
        per-round success celebration so they look identical. */
     function spawnConfettiSpans(container, count) {
       var colors = ["#4dbeff", "#9b5fd9", "#78dc2d", "#ffcf3b", "#ff6b8b", "#56e8ff"];
@@ -8504,10 +8495,14 @@
     }
 
     function completeGame() {
-      /* No end screen: this game lives inside a flipbook, which takes over
-         after completion. Leave the final happy-bots scene on screen and just
-         signal the host that the activity is done. (The old "Bots Powered Up!"
-         stage markup remains in the DOM, permanently hidden.) */
+      /* Final "Bots Powered Up!" screen: shown after the last round's success
+         celebration, then signal the host that the activity is done. */
+      resetScene();
+      setInstruction("");
+      renderCompleteConfetti();
+      show(els.completeStage);
+      sndConfetti();
+      sndKidsCheer();
       try {
         parent.postMessage({ type: "activity_complete" }, "*");
       } catch (e) { }
